@@ -9,6 +9,8 @@ import tkinter as tk
 import gui
 from shapely.geometry import LineString
 
+from integr import double_integr_trap
+
 # https://www.reddit.com/r/Unity2D/comments/34qm8v/how_to_move_an_object_in_a_circular_pattern/
 A_t = 15
 ro_t = 10
@@ -31,81 +33,6 @@ eps = 0.05 # заряд электрона
 n = 0.5
 
 
-# https://stackoverflow.com/questions/57065080/draw-perpendicular-line-of-fixed-length-at-a-point-of-another-line
-def is_point_in_view(left_border_coord, right_border_coord, circle_center, point):
-    k1, b1 = get_perpendicular(left_border_coord, circle_center)
-    k2, b2 = get_perpendicular(right_border_coord, circle_center)
-
-def get_perpendicular(border_coord, circle_center):
-    ab = LineString([border_coord, circle_center])
-    cd_length = 10
-    left = ab.parallel_offset(cd_length / 2, 'left')
-    right = ab.parallel_offset(cd_length / 2, 'right')
-    c = left.boundary[1]
-    d = right.boundary[0]  # note the different orientation for right offset
-    cd = LineString([c, d])
-    k, b = get_line_equation_by_two_coords(c, d)
-    return k, b
-
-# https://stackoverflow.com/questions/21565994/method-to-return-the-equation-of-a-straight-line-given-two-points
-def get_line_equation_by_two_coords(a, b):
-    points = [a, b]
-    x_coords, y_coords = zip(*points)
-    A = vstack([x_coords, ones(len(x_coords))]).T
-    m, c = lstsq(A, y_coords)[0]
-    return m, c
-
-
-# Количество атомов материала мишени в единицу времени с определенного участка мишени
-def v_t(r_1):
-    return Y_t * (j_i) / eps
-
-def j_i(r_1):
-    return j_t(r_1) / (1 + gamma_t)
-
-def j_t(r_1):
-    f_integr = integrate.quad(lambda r_1: f(r_1), 0, np.inf)
-    return (I_t / (math.pi * (R_max + R_min) + 2 * L)) * (f(r_1) / f_integr[0])
-
-def f(r_1):
-    sigma = (R_max - R_min) / 6
-    sigma_1 = (R_med - R_min) / 3
-    sigma_2 = (R_max - R_med) / 3
-
-    left_side = 1 / (math.sqrt(2 * math.pi) * sigma)
-
-    if (math.fabs(r_1) <= R_med):
-        return left_side * math.exp(-((r_1 - R_med)**2) / (2 * (sigma_1**2)))
-    else:
-        return left_side * math.exp(-((r_1 - R_med)**2) / (2 * (sigma_2**2)))
-
-
-def ips_t(r_1):
-    return Y_t * j_t(r_1) * A_t / (N_a * eps * ro_t * (1 + gamma_t))
-
-def t_dep(gamma_max, V_s):
-    return 2 * gamma_max / V_s
-
-
-def w(x_2):
-    return integrate.quad(lambda t: V(x_2, t * V_s), -t_dep / 2, t_dep / 2)
-
-def W(x_2, z_k):
-    return w(x_2) * z_k
-
-def V(x_2, y_2):
-    return V_1(x_2, y_2) + V_2(x_2, y_2) + V_3(x_2, y_2) + V_4(x_2, y_2)
-
-
-def V_1(x2, y2):
-    l = 5 # расстояние от точки распыления
-    return 1 / math.pi * integrate.dblquad(lambda r_1, teta: (r_1 * ips_t(r_1) * math.cos(TODO1) * (math.cos(TODO2)**n)) / (l**2), R_min, R_max, lambda teta: -math.pi / 2, lambda teta: math.pi / 2)
-
-def V_3(x2, y2):
-    l = 5 # расстояние от точки распыления
-    return 1 / math.pi * integrate.dblquad(lambda x_1, y_1: (ips_t(x_1) * math.cos(x_1, y_1) * (math.cos(x_1, y_1)**n)) / (l**2), R_min, R_max, lambda y_1: - L / 2, lambda y_1: L / 2)
-
-
 class Magnetron(object):
     def __init__(self, x_center, y_center, z_center, length, width, R_min, R_max, R_med, mishen, current) -> None:
         self.center_coord = [x_center, y_center, z_center]
@@ -122,12 +49,13 @@ class Magnetron(object):
 
 
 class Mishen(object):
-    def __init__(self, Y, gamma, A, ro, n) -> None:
-        self.Y = Y
-        self.gamma = gamma
-        self.A = A
-        self.ro = ro
-        self.n = n
+    def __init__(self, x, z_lower_border_target, z_higher_border_target, y_left_border_target, y_right_border_target):
+        self.z_lower_border_target = z_lower_border_target
+        self.z_higher_border_target = z_higher_border_target
+        self.y_left_border_target = y_left_border_target
+        self.y_right_border_target = y_right_border_target
+        self.x = x
+
 
 class Ustanovka(object):
     def __init__(self, x_center, y_center, z_center, rad, M_P_distance, rpm) -> None:
@@ -145,8 +73,13 @@ class Ustanovka(object):
 class UstanovkaWithPodlozkda(Ustanovka):
     def __init__(self, x_center, y_center, z_center, rad, M_P_distance, rpm, holders_rad, holders_rpm, holders_count) -> None:
         super().__init__(x_center, y_center, z_center, rad, M_P_distance, rpm)
+
         self.holders_count = holders_count
         self.holders_rpm = holders_rpm
+        self.rad = rad
+        self.rpm = rpm
+        self.rad_per_m = self.rpm * math.pi * 2
+        self.rad_per_s = self.rad_per_m / 60
         self.holders_rad = holders_rad
         self.holders_rad_per_m = self.holders_rpm * math.pi * 2
         self.holders_rad_per_s = self.holders_rad_per_m / 60
@@ -154,24 +87,32 @@ class UstanovkaWithPodlozkda(Ustanovka):
 
     def make_holders(self):
         shift_rad = 2 * math.pi / self.holders_count
-        cur_rad = 0
+        cur_angle = 0
         for i in range(self.holders_count):
-            z = self.rad * math.cos(cur_rad) + self.center_3d[1]
-            y = self.rad * math.sin(cur_rad) + self.center_3d[2]
-            holder = Holder(0, y, z, 50, self.holders_rad, self.holders_rpm) # TODO 50 HARDCODED!!!!
+            x = self.rad * math.cos(cur_angle) + self.center_3d[0]
+            y = self.rad * math.sin(cur_angle) + self.center_3d[1]
+            holder = Holder(x, y, 0, cur_angle, 1, self.holders_rad, self.holders_rpm) # TODO 50 HARDCODED!!!!
             holder.make_points()
             self.holders.append(holder)
-            cur_rad += shift_rad
+            cur_angle += shift_rad
 
-class Circle_point(object):
-    def __init__(self, x, y, z, radian) -> None:
-        self.x = x
-        self.y = y
-        self.z = z
-        self.radian = radian
+    def move_dt(self, dt):
+        moved = self.rad_per_s * dt
+        for holder in self.holders:
+            holder.current_angle = holder.current_angle + moved
+            holder.center_3d[0] = math.cos(holder.current_angle) * self.rad
+            holder.center_3d[1] = math.sin(holder.current_angle) * self.rad
+            holder.move_dt(dt)
+
+
+class Holder_point(object):
+    def __init__(self, x, y, z, curr_angle) -> None:
+        self.coord = [x, y, z]
+        self.current_angle = curr_angle
+        self.thin = 0
 
 class Holder(object):
-    def __init__(self, x_center, y_center, z_center, points_count, rad, rpm) -> None:
+    def __init__(self, x_center, y_center, z_center, curr_angle, points_count, rad, rpm) -> None:
         self.center_3d = [x_center, y_center, z_center]
         self.rad = rad
         self.rpm = rpm
@@ -179,70 +120,72 @@ class Holder(object):
         self.rad_per_s = self.rad_per_m / 60
         self.points_count = points_count
         self.points = []
+        self.current_angle = curr_angle
 
     def make_points(self):
         shift_rad = 2 * math.pi / self.points_count
         i = 0
         cur_rad = 0
         for i in range(self.points_count):
-            z = self.rad * math.cos(i) + self.center_3d[1]
-            y = self.rad * math.sin(i) + self.center_3d[2]
-            self.points.append([0, y, z, i])
+            x = self.rad * math.cos(cur_rad) + self.center_3d[0]
+            y = self.rad * math.sin(cur_rad) + self.center_3d[1]
+            new_point = Holder_point(x, y, 0, cur_rad)
             cur_rad += shift_rad
+            self.points.append(new_point)
 
     def move_dt(self, dt):
         moved = self.rad_per_s * dt
         for point in self.points:
-            prev_angle = self.center_3d[1]
-            point[1] = point[1] + math.cos(moved) * self.rad
-            point[2] = point[2] + math.sin(moved) * self.rad
-
-
+            point.current_angle = point.current_angle + moved
+            point.coord[0] = self.center_3d[0] + math.cos(point.current_angle) * self.rad
+            point.coord[1] = self.center_3d[1] + math.sin(point.current_angle) * self.rad
 
 if __name__ == "__main__":
-    ustanovka = UstanovkaWithPodlozkda(0, 0, 0, 360, 50, 7.5, 50, 7.5, 8)
+
+    fig, (plt1, plt2) = plt.subplots(1,2)
+
+    ustanovka = UstanovkaWithPodlozkda(0, 0, 0, 10, 50, 7.5, 1, 7.5, 1)
+    mishen = Mishen(30, -25.5 / 2, 25.5 / 2, -11.5 / 2, 11.5 / 2)
     ustanovka.make_holders()
     print("")
 
-    # Рисуем центры подложек
-    x_val = [holder.center_3d[1] for holder in ustanovka.holders]
-    y_val = [holder.center_3d[2] for holder in ustanovka.holders]
-    #plt.scatter(x_val, y_val)
+    time_step = 0.4
+
+    for time in np.arange(0, 20, time_step):
+        x_val = []
+        y_val = []
+        color_val = []
+        for holder in ustanovka.holders:
+            x_val = [holder.center_3d[0] for holder in ustanovka.holders]
+            y_val = [holder.center_3d[1] for holder in ustanovka.holders]
+            color_val.append("blue")
+            for point in holder.points:
+                v_p, coord_intersections = double_integr_trap(cond_enabled=True, x_0=point.coord[0], y_0=point.coord[1], z_0=point.coord[2], y_left_border_target=mishen.y_left_border_target, y_right_border_target=mishen.y_right_border_target, z_lower_border_target=mishen.z_lower_border_target, z_higher_border_target=mishen.z_higher_border_target, l=mishen.x, ksi=point.current_angle)
+
+                for coord_intersection in coord_intersections:
+                    x_val.append(coord_intersection[0])
+                    y_val.append(coord_intersection[1])
+                    if coord_intersection[3] == 1:
+                        color_val.append("green")
+                    else:
+                        color_val.append("red")
+
+                x_val.append(point.coord[0])
+                y_val.append(point.coord[1])
+                color_val.append("lime")
+
+        ustanovka.move_dt(time_step)
+
+        plt.xlim(-abs(ustanovka.rad) - 5, mishen.x + 5)
+        plt.ylim(-15, 15)
+
+        # plt.axline((mishen.x, mishen.y_left_border_target), (mishen.x, mishen.y_right_border_target))
+
+        plt.scatter(x_val, y_val, color=color_val)
+        plt.draw()
+        plt.pause(0.4)
+        plt.clf()
+
     # plt.show()
-    # Рисуем точки подложек
-    x_val = []
-    y_val = []
-    # for holder in ustanovka.holders:
-    #     for point in holder.points:
-    #         x_val.append(point[1])
-    #         y_val.append(point[2])
 
-    # for time in np.arange(0, 10, 0.5):
-    #     x_val = []
-    #     y_val = []
-    #     for holder in ustanovka.holders:
-    #         #holder.move_dt(time)
-    #         for point in holder.points:
-    #             x_val.append(point[1])
-    #             y_val.append(point[2])
-    #     plt.scatter(x_val, y_val)
-    #     plt.draw()
-    #     plt.pause(1)
-    #     plt.clf()
-
-    # plt.show()
-
-    x = []
-    y = []
-    r_1 = 0
-    for i in np.arange(0, 50, 1):
-        x.append(r_1)
-        y.append(j_i(r_1))
-        r_1 += 1
-
-    print(x)
-    plt.plot(x, y)
-    plt.show()
-    print("5")
     # a = gui.Gui()
-
