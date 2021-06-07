@@ -9,7 +9,7 @@ import math
 import tkinter as tk
 from shapely.geometry import LineString
 
-from integr import double_integr_trap
+from integr import double_integr_trap, double_integr_trap_multithread
 
 # https://www.reddit.com/r/Unity2D/comments/34qm8v/how_to_move_an_object_in_a_circular_pattern/
 A_t = 15
@@ -21,16 +21,17 @@ R_max = 44
 R_med = 22.5
 R_min = 4
 I_t = 5.7
-L = 514 # Длина прямолинейного участка зоны распыления
-M_P_distance = 0.08 # Мишень - подложка
-D_baraban = 0.36 # Диаметр барабана
-Velocity_baraban = 1.5 # Скорость вращения барабана
-gamma_t = 0.01 # Коэффициент эмиссии
-ro_t = 2700 # Плотность материала мишени
-A_t = 27 # а.е.м
-Y_t = 0.35 # коэффициент распыления
-eps = 0.05 # заряд электрона
+L = 514  # Длина прямолинейного участка зоны распыления
+M_P_distance = 0.08  # Мишень - подложка
+D_baraban = 0.36  # Диаметр барабана
+Velocity_baraban = 1.5  # Скорость вращения барабана
+gamma_t = 0.01  # Коэффициент эмиссии
+ro_t = 2700  # Плотность материала мишени
+A_t = 27  # а.е.м
+Y_t = 0.35  # коэффициент распыления
+eps = 0.05  # заряд электрона
 n = 0.5
+
 
 class Magnetron(object):
     def __init__(self, x_center, y_center, z_center, length, width, R_min, R_max, R_med, mishen, current) -> None:
@@ -44,7 +45,7 @@ class Magnetron(object):
         self.mishen = mishen
         self.R_left_center_coord = [x_center, y_center - self.length / 2, z_center]
         self.R_left_center_coord = [x_center, y_center + self.length / 2, z_center]
-        self.max_angle = 60 # градусы
+        self.max_angle = 60  # градусы
 
 
 class Mishen(object):
@@ -117,6 +118,7 @@ class Holder_point(object):
         self.current_angle = curr_angle
         self.thin = 0
 
+
 class Holder(object):
     def __init__(self, x_center, y_center, z_center, curr_angle, rad, rpm) -> None:
         self.center_3d = [x_center, y_center, z_center]
@@ -152,6 +154,7 @@ class Holder(object):
             point.coord[0] = self.center_3d[0] + math.cos(point.current_angle) * self.rad
             point.coord[1] = self.center_3d[1] + math.sin(point.current_angle) * self.rad
 
+
 def calc_plain_z_axis_multiple_points():
     mishen = Mishen(30, -25.5 / 2, 25.5 / 2, -11.5 / 2, 11.5 / 2)
 
@@ -174,7 +177,18 @@ def calc_plain_z_axis_multiple_points():
                 x_val.append(point.coord[0])
                 y_val.append(point.coord[1])
 
-                v_p, coord_intersections = double_integr_trap(cond_enabled=True, x_0=point.coord[0], y_0=point.coord[1], z_0=point.coord[2], y_left_border_target=mishen.y_left_border_target, y_right_border_target=mishen.y_right_border_target, z_lower_border_target=mishen.z_lower_border_target, z_higher_border_target=mishen.z_higher_border_target, l=mishen.x, ksi=point.current_angle)
+                v_p, coord_intersections = double_integr_trap(
+                    cond_enabled=True,
+                    x_0=point.coord[0],
+                    y_0=point.coord[1],
+                    z_0=point.coord[2],
+                    y_left_border_target=mishen.y_left_border_target,
+                    y_right_border_target=mishen.y_right_border_target,
+                    z_lower_border_target=mishen.z_lower_border_target,
+                    z_higher_border_target=mishen.z_higher_border_target,
+                    l=mishen.x,
+                    ksi=point.current_angle,
+                )
                 if v_p != 0:
                     color_val.append("lime")
                     for coord_intersection in coord_intersections:
@@ -209,7 +223,7 @@ def one_dot__with_visualization():
     # fig = plt.figure()
     # fig.canvas.mpl_connect('close_event', exit(0))
 
-    time_step = 0.4
+    time_step = 0.1
 
     for time in np.arange(0, 20, time_step):
         x_val = []
@@ -220,7 +234,18 @@ def one_dot__with_visualization():
             y_val.append(holder.center_3d[1])
             color_val.append("blue")
             for point in holder.points:
-                v_p, coord_intersections = double_integr_trap(cond_enabled=True, x_0=point.coord[0], y_0=point.coord[1], z_0=point.coord[2], y_left_border_target=mishen.y_left_border_target, y_right_border_target=mishen.y_right_border_target, z_lower_border_target=mishen.z_lower_border_target, z_higher_border_target=mishen.z_higher_border_target, l=mishen.x, ksi=point.current_angle)
+                v_p, coord_intersections = double_integr_trap(
+                    cond_enabled=True,
+                    x_0=point.coord[0],
+                    y_0=point.coord[1],
+                    z_0=point.coord[2],
+                    y_left_border_target=mishen.y_left_border_target,
+                    y_right_border_target=mishen.y_right_border_target,
+                    z_lower_border_target=mishen.z_lower_border_target,
+                    z_higher_border_target=mishen.z_higher_border_target,
+                    l=mishen.x,
+                    ksi=point.current_angle,
+                )
 
                 for coord_intersection in coord_intersections:
                     x_val.append(coord_intersection[0])
@@ -243,8 +268,9 @@ def one_dot__with_visualization():
 
         plt.scatter(x_val, y_val, color=color_val)
         plt.draw()
-        plt.pause(0.4)
+        plt.pause(time_step)
         plt.clf()
+
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
