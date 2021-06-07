@@ -125,8 +125,8 @@ def double_integr_trap_multithread(
     if N % thread_count:
         pack += 1
 
+    results_array = []
     with concurrent.futures.ProcessPoolExecutor() as executor:
-        results_array = []
         futures = []
         while curr != end or curr != N:
             prev = curr
@@ -161,10 +161,9 @@ def double_integr_trap_multithread(
                     M,
                 )
             )
-            print("started thread")
+            logging.debug("started thread")
 
         for future in concurrent.futures.as_completed(futures):
-            print(future.result())
             results_array.append(future.result())
 
     # print(results_array)
@@ -246,7 +245,7 @@ def calc_for(
                 w = 0.5
 
             summ += w * func(x, y)
-    return summ, coord_list
+    return summ
 
 
 def test(x, y):

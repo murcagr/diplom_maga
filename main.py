@@ -6,6 +6,7 @@ from numpy import ones, vstack
 from numpy.linalg import lstsq
 import matplotlib.pyplot as plt
 import math
+import time
 import tkinter as tk
 from shapely.geometry import LineString
 
@@ -165,7 +166,7 @@ def calc_plain_z_axis_multiple_points():
     # fig = plt.figure()
     # fig.canvas.mpl_connect('close_event', exit(0))
 
-    for time in np.arange(0, 20, time_step):
+    for _ in np.arange(0, 20, time_step):
         x_val = []
         y_val = []
         color_val = []
@@ -215,17 +216,18 @@ def calc_plain_z_axis_multiple_points():
 
 
 def one_dot__with_visualization():
-    ustanovka = UstanovkaWithPodlozkda(0, 0, 0, 10, 7.5, 1, 7.5)
+    ustanovka = UstanovkaWithPodlozkda(0, 0, 0, 10, 7.5, 1, 11.25)
     ustanovka.make_custom_holder(0, 0)
     mishen = Mishen(30, -25.5 / 2, 25.5 / 2, -11.5 / 2, 11.5 / 2)
     print("")
 
     # fig = plt.figure()
     # fig.canvas.mpl_connect('close_event', exit(0))
+    thickness = 0
 
-    time_step = 0.1
+    time_step = 0.05
 
-    for time in np.arange(0, 20, time_step):
+    for _ in np.arange(0, 20, time_step):
         x_val = []
         y_val = []
         color_val = []
@@ -246,6 +248,8 @@ def one_dot__with_visualization():
                     l=mishen.x,
                     ksi=point.current_angle,
                 )
+
+                thickness += v_p * time_step
 
                 for coord_intersection in coord_intersections:
                     x_val.append(coord_intersection[0])
@@ -271,8 +275,56 @@ def one_dot__with_visualization():
         plt.pause(time_step)
         plt.clf()
 
+    print(f'Вычисленная толщина пленки: {thickness}')
+
+def one_dot(thread_count=4):
+    ustanovka = UstanovkaWithPodlozkda(0, 0, 0, 10, 7.5, 1, 11.25)
+    ustanovka.make_custom_holder(0, 0)
+    mishen = Mishen(30, -25.5 / 2, 25.5 / 2, -11.5 / 2, 11.5 / 2)
+    print("")
+
+    # fig = plt.figure()
+    # fig.canvas.mpl_connect('close_event', exit(0))
+    thickness = 0
+
+    time_step = 0.1
+
+    for _ in np.arange(0, 10, time_step):
+        for holder in ustanovka.holders:
+            for point in holder.points:
+                v_p = double_integr_trap_multithread(
+                    cond_enabled=True,
+                    x_0=point.coord[0],
+                    y_0=point.coord[1],
+                    z_0=point.coord[2],
+                    h1=0.01,
+                    h2=0.01,
+                    thread_count=thread_count,
+                    y_left_border_target=mishen.y_left_border_target,
+                    y_right_border_target=mishen.y_right_border_target,
+                    z_lower_border_target=mishen.z_lower_border_target,
+                    z_higher_border_target=mishen.z_higher_border_target,
+                    l=mishen.x,
+                    ksi=point.current_angle,
+                )
+
+                thickness += v_p * time_step
+
+        ustanovka.move_dt(time_step)
+
+    print(f'Вычисленная толщина пленки: {thickness}')
+
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
-    one_dot__with_visualization()
+    # one_dot__with_visualization()
+    start = time.time()
+    one_dot()
+    end = time.time()
+    print(end - start)
+
+    start = time.time()
+    one_dot(thread_count=1)
+    end = time.time()
+    print(end - start)
     # calc_plain_z_axis_multiple_points()
