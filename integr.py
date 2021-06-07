@@ -1,3 +1,4 @@
+import logging
 import math
 import colorama
 from colorama import Fore, Style
@@ -26,19 +27,19 @@ def double_integr_trap(func=v_p_intrg, a1=0, b1=math.pi / 2, h1=0.1,
         for j in range(0, M):
             y = a2 + j * h1
 
-            print(f'Фи и Тета: {math.degrees(x):.5f}, {math.degrees(y):.5f}')
+            logging.debug(f'Фи и Тета: {math.degrees(x):.5f}, {math.degrees(y):.5f}')
             if cond_enabled:
 
                 s_1_podv = math.cos(y)
                 s_2_podv = math.sin(y) * math.sin(x)
                 s_3_podv = math.cos(y) * math.sin(x)
-                print(f'Координаты вектора сигма в подвижной: {s_1_podv:.5f}, {s_2_podv:.5f}, {s_3_podv:.5f}')
+                logging.debug(f'Координаты вектора сигма в подвижной: {s_1_podv:.5f}, {s_2_podv:.5f}, {s_3_podv:.5f}')
                 s_1_nepodv = math.cos(ksi) * s_1_podv - math.sin(ksi) * s_2_podv
                 s_2_nepodv = math.sin(ksi) * s_1_podv + math.cos(ksi) * s_2_podv
                 s_3_nepodv = s_3_podv
-                print(f'Координаты вектора сигма в неподвижной: {s_1_nepodv:.5f}, {s_2_nepodv:.5f}, {s_3_nepodv:.5f}')
+                logging.debug(f'Координаты вектора сигма в неподвижной: {s_1_nepodv:.5f}, {s_2_nepodv:.5f}, {s_3_nepodv:.5f}')
                 if s_1_nepodv <= 0:
-                    print(f"{Fore.RED}Сигма_1 отрицательная, пропускаем{Style.RESET_ALL}")
+                    logging.debug(f"{Fore.RED}Сигма_1 отрицательная, пропускаем{Style.RESET_ALL}")
                     continue
 
                 t = (l - x_0) / s_1_nepodv
@@ -46,12 +47,12 @@ def double_integr_trap(func=v_p_intrg, a1=0, b1=math.pi / 2, h1=0.1,
                 y_1 = y_0 + s_2_nepodv * t
                 z_1 = z_0 + s_3_nepodv * t
                 x_1 = l
-                print(f'Координаты точки пересечения: {x_1:.3f}, {y_1:.3f}, {z_1:.3f}')
+                logging.debug(f'Координаты точки пересечения: {x_1:.3f}, {y_1:.3f}, {z_1:.3f}')
                 if not ((z_lower_border_target <= z_1 <= z_higher_border_target) and (y_left_border_target <= y_1 <= y_right_border_target)):
-                    print(f"{Fore.RED}Луч не пересекает поверхность{Style.RESET_ALL}")
+                    logging.debug(f"{Fore.RED}Луч не пересекает поверхность{Style.RESET_ALL}")
                     coord_list.append([x_1, y_1, z_1, 0])
                     continue
-                print(f"{Fore.GREEN}Луч пересекает поверхность{Style.RESET_ALL}")
+                logging.debug(f"{Fore.GREEN}Луч пересекает поверхность{Style.RESET_ALL}")
                 coord_list.append([x_1, y_1, z_1, 1])
 
             if (i > 0 and i < N and j > 0 and j < M):
