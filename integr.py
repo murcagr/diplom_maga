@@ -198,9 +198,9 @@ def calc_for(
 
     summ = 0
     coord_list = []
-    for i in range(prev, curr + 2):
+    for i in range(prev, curr):
         x = a1 + i * h2
-        for j in range(0, M + 2):
+        for j in range(0, M):
             y = a2 + j * h1
 
             logging.debug(f'Фи и Тета: {math.degrees(x):.5f}, {math.degrees(y):.5f}')
@@ -251,7 +251,7 @@ def calc_for(
             # print(k)
             # print(-k * distance)
             # print(math.exp(-k * distance))
-            summ += w * func(x, y) * math.exp(-k * distance / 100)
+            summ += w * func(x, y) #* math.exp(-k * distance)
 
     return summ
 

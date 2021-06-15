@@ -300,7 +300,7 @@ def one_dot__with_visualization(thread_count=4, minutes=1, omega_b=1, omega_o=2,
 
 def one_dot(thread_count=16, minutes=1, omega_b=1, omega_o=2, ksi=0, k=0):
     ustanovka = UstanovkaWithPodlozkda(0, 0, 0, 10, omega_b, 1, omega_o)
-    ustanovka.make_custom_holder(0, ksi)
+    ustanovka.make_custom_holder(90, ksi)
     mishen = Mishen(30, -25.5 / 2, 25.5 / 2, -11.5 / 2, 11.5 / 2)
     end_time = minutes * 60
     v_m = 1
@@ -377,7 +377,7 @@ if __name__ == "__main__":
     # # one_dot__with_visualization(omega_b=1, omega_o=2, minutes=1, ksi=0)
     # end = time.time()
     # print(end - start)
-    issled_one_dot(omega_b=1, omega_o=2, minutes=1, k=0)
+    # issled_one_dot(omega_b=1, omega_o=2, minutes=1, k=0)
 
     # start = time.time()
     # one_dot(thread_count=1)
