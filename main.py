@@ -298,12 +298,14 @@ def one_dot__with_visualization(thread_count=4, minutes=1, omega_b=1, omega_o=2,
 
     print(f'Вычисленная толщина пленки: {thickness}')
 
-def one_dot(thread_count=4, minutes=1, omega_b=1, omega_o=2, ksi=0):
+def one_dot(thread_count=16, minutes=1, omega_b=1, omega_o=2, ksi=0):
     ustanovka = UstanovkaWithPodlozkda(0, 0, 0, 10, omega_b, 1, omega_o)
     ustanovka.make_custom_holder(0, ksi)
     mishen = Mishen(30, -25.5 / 2, 25.5 / 2, -11.5 / 2, 11.5 / 2)
     end_time = minutes * 60
     v_m = 1
+
+    file = open(f'res_{omega_b}_{omega_o}_{minutes}.txt', 'w')
 
     # fig = plt.figure()
     # fig.canvas.mpl_connect('close_event', exit(0))
@@ -333,9 +335,11 @@ def one_dot(thread_count=4, minutes=1, omega_b=1, omega_o=2, ksi=0):
                 thickness += v_p * time_step
 
         print(f't={ttime:.3f} psi={math.degrees(holder.current_angle):.3f} ksi={math.degrees(point.current_angle):.3f} v_p={v_p:.3f}  d= {thickness:.3f}')
+        file.write(f't={ttime:.3f} psi={math.degrees(holder.current_angle):.3f} ksi={math.degrees(point.current_angle):.3f} v_p={v_p:.3f}  d= {thickness:.3f}')
         ustanovka.move_dt(time_step)
 
     print(f'd: {thickness}')
+    file.close()
     return thickness
 
 def issled_one_dot(omega_b=1, omega_o=2, minutes=1):
