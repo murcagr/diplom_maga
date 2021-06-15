@@ -305,7 +305,7 @@ def one_dot(thread_count=1, minutes=1, omega_b=1, omega_o=2, ksi=0, k=1):
     end_time = minutes * 60
     v_m = 1
 
-    file = open(f'res_{omega_b}_{omega_o}_{minutes}.txt', 'w')
+    file = open(f'res_ob{omega_b}_oo{omega_o}_m{minutes}_k{k}.txt', 'w')
 
     # fig = plt.figure()
     # fig.canvas.mpl_connect('close_event', exit(0))
