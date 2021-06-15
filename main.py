@@ -201,21 +201,20 @@ def calc_plain_z_axis_multiple_points():
         plt.clf()
 
 
-def one_dot__with_visualization():
-    ustanovka = UstanovkaWithPodlozkda(0, 0, 0, 10, 1, 1, 2)
-    ustanovka.make_custom_holder(90, 0)
+def one_dot__with_visualization(thread_count=4, minutes=1, omega_b=1, omega_o=2, ksi=0):
+    ustanovka = UstanovkaWithPodlozkda(0, 0, 0, 10, omega_b, 1, omega_o)
+    ustanovka.make_custom_holder(0, ksi)
     mishen = Mishen(30, -25.5 / 2, 25.5 / 2, -11.5 / 2, 11.5 / 2)
-    print("")
+    end_time = minutes * 60
+    v_m = 1
 
-    # fig = plt.figure()
-    # fig.canvas.mpl_connect('close_event', exit(0))
     thickness = 0
 
     time_step = 0.15
 
     fig, (ax1, ax2) = plt.subplots(2)
 
-    for ttime in np.arange(0, 60, time_step):
+    for ttime in np.arange(0, end_time + time_step, time_step):
         x_val = []
         y_val = []
         color_val = []
@@ -227,7 +226,7 @@ def one_dot__with_visualization():
             y_val.append(holder.center_3d[1])
             color_val.append("blue")
             for point in holder.points:
-                v_p, coord_intersections = double_integr_trap(
+                v_p, coord_intersections = v_m * double_integr_trap(
                     cond_enabled=True,
                     x_0=point.coord[0],
                     y_0=point.coord[1],
@@ -300,7 +299,7 @@ def one_dot__with_visualization():
 
 def one_dot(thread_count=4, minutes=1, omega_b=1, omega_o=2, ksi=0):
     ustanovka = UstanovkaWithPodlozkda(0, 0, 0, 10, omega_b, 1, omega_o)
-    ustanovka.make_custom_holder(90, ksi)
+    ustanovka.make_custom_holder(0, ksi)
     mishen = Mishen(30, -25.5 / 2, 25.5 / 2, -11.5 / 2, 11.5 / 2)
     end_time = minutes * 60
     v_m = 1
@@ -343,6 +342,7 @@ if __name__ == "__main__":
     # one_dot__with_visualization()
     # start = time.time()
     one_dot(omega_b=1, omega_o=2, minutes=1, ksi=0)
+    # one_dot__with_visualization(omega_b=1, omega_o=2, minutes=1, ksi=0)
     # end = time.time()
     # print(end - start)
 
