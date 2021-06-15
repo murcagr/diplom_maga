@@ -31,16 +31,15 @@ def double_integr_trap(
     l=10,
 ):
 
-    N = int((a2 + b2) / h2)
-    M = int((a1 + b1) / h1)
+    N = int((b2 - a2) / h2)
+    M = int((b1 - a1) / h1)
 
     summ = 0
 
     coord_list = []
-
-    for i in range(0, N):
+    for i in range(0, N + 1):
         x = a1 + i * h2
-        for j in range(0, M):
+        for j in range(0, M + 1):
             y = a2 + j * h1
 
             logging.debug(f'Фи и Тета: {math.degrees(x):.5f}, {math.degrees(y):.5f}')
@@ -48,8 +47,8 @@ def double_integr_trap(
 
                 s_1_podv = math.cos(y)
                 s_2_podv = math.sin(y) * math.sin(x)
-                s_3_podv = math.cos(y) * math.sin(x)
-                logging.debug(f'Координаты вектора сигма в подвижной: {s_1_podv:.5f}, {s_2_podv:.5f}, {s_3_podv:.5f}')
+                s_3_podv = math.sin(y) * math.cos(x)
+                logging.debug(f'Координаты вектора сигмаaa в подвижной: {s_1_podv:.5f}, {s_2_podv:.5f}, {s_3_podv:.5f}')
                 s_1_nepodv = math.cos(ksi) * s_1_podv - math.sin(ksi) * s_2_podv
                 s_2_nepodv = math.sin(ksi) * s_1_podv + math.cos(ksi) * s_2_podv
                 s_3_nepodv = s_3_podv
@@ -82,9 +81,9 @@ def double_integr_trap(
                 w = 0.25
             else:
                 w = 0.5
-
             summ += w * func(x, y)
 
+    # logging.debug(f"{summ}")
     res = h1 * h2 * summ
     # / ((b1 - a1) * (b2 - a1))
 
@@ -206,10 +205,9 @@ def calc_for(
 
             logging.debug(f'Фи и Тета: {math.degrees(x):.5f}, {math.degrees(y):.5f}')
             if cond_enabled:
-
                 s_1_podv = math.cos(y)
                 s_2_podv = math.sin(y) * math.sin(x)
-                s_3_podv = math.cos(y) * math.sin(x)
+                s_3_podv = math.sin(y) * math.cos(x)
                 logging.debug(f'Координаты вектора сигма в подвижной: {s_1_podv:.5f}, {s_2_podv:.5f}, {s_3_podv:.5f}')
                 s_1_nepodv = math.cos(ksi) * s_1_podv - math.sin(ksi) * s_2_podv
                 s_2_nepodv = math.sin(ksi) * s_1_podv + math.cos(ksi) * s_2_podv
@@ -244,7 +242,10 @@ def calc_for(
             else:
                 w = 0.5
 
+            logging.debug(f"{w * func(x, y)}")
+
             summ += w * func(x, y)
+
     return summ
 
 

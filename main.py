@@ -9,6 +9,7 @@ import math
 import time
 import tkinter as tk
 from shapely.geometry import LineString
+import sys
 
 from integr import double_integr_trap, double_integr_trap_multithread
 
@@ -16,23 +17,6 @@ from integr import double_integr_trap, double_integr_trap_multithread
 A_t = 15
 ro_t = 10
 N_a = constants.N_A
-# Входные данные
-
-R_max = 44
-R_med = 22.5
-R_min = 4
-I_t = 5.7
-L = 514  # Длина прямолинейного участка зоны распыления
-M_P_distance = 0.08  # Мишень - подложка
-D_baraban = 0.36  # Диаметр барабана
-Velocity_baraban = 1.5  # Скорость вращения барабана
-gamma_t = 0.01  # Коэффициент эмиссии
-ro_t = 2700  # Плотность материала мишени
-A_t = 27  # а.е.м
-Y_t = 0.35  # коэффициент распыления
-eps = 0.05  # заряд электрона
-n = 0.5
-
 
 class Magnetron(object):
     def __init__(self, x_center, y_center, z_center, length, width, R_min, R_max, R_med, mishen, current) -> None:
@@ -59,7 +43,7 @@ class Mishen(object):
 
 
 class Ustanovka(object):
-    def __init__(self, x_center, y_center, z_center, rad, M_P_distance, rpm) -> None:
+    def __init__(self, x_center, y_center, z_center, rad, rpm) -> None:
         self.center_3d = [x_center, y_center, z_center]
         self.rad = rad
         self.rpm = rpm
@@ -73,7 +57,7 @@ class Ustanovka(object):
 # def calc_f_angle_max(Ustanovka):
 class UstanovkaWithPodlozkda(Ustanovka):
     def __init__(self, x_center, y_center, z_center, rad, rpm, holders_rad, holders_rpm) -> None:
-        super().__init__(x_center, y_center, z_center, rad, M_P_distance, rpm)
+        super().__init__(x_center, y_center, z_center, rad, rpm)
 
         self.holders_rpm = holders_rpm
         self.rad = rad
@@ -98,6 +82,8 @@ class UstanovkaWithPodlozkda(Ustanovka):
             cur_angle += shift_rad
 
     def make_custom_holder(self, holder_angle, point_angle):
+        holder_angle = math.radians(holder_angle)
+        point_angle = math.radians(point_angle)
         x = self.rad * math.cos(holder_angle) + self.center_3d[0]
         y = self.rad * math.sin(holder_angle) + self.center_3d[1]
         holder = Holder(x, y, 0, holder_angle, self.holders_rad, self.holders_rpm)
@@ -107,7 +93,7 @@ class UstanovkaWithPodlozkda(Ustanovka):
     def move_dt(self, dt):
         moved = self.rad_per_s * dt
         for holder in self.holders:
-            holder.current_angle = holder.current_angle + moved
+            holder.current_angle = holder.current_angle - moved
             holder.center_3d[0] = math.cos(holder.current_angle) * self.rad
             holder.center_3d[1] = math.sin(holder.current_angle) * self.rad
             holder.move_dt(dt)
@@ -216,8 +202,8 @@ def calc_plain_z_axis_multiple_points():
 
 
 def one_dot__with_visualization():
-    ustanovka = UstanovkaWithPodlozkda(0, 0, 0, 10, 7.5, 1, 11.25)
-    ustanovka.make_custom_holder(0, 0)
+    ustanovka = UstanovkaWithPodlozkda(0, 0, 0, 10, 1, 1, 2)
+    ustanovka.make_custom_holder(90, 0)
     mishen = Mishen(30, -25.5 / 2, 25.5 / 2, -11.5 / 2, 11.5 / 2)
     print("")
 
@@ -225,12 +211,17 @@ def one_dot__with_visualization():
     # fig.canvas.mpl_connect('close_event', exit(0))
     thickness = 0
 
-    time_step = 0.05
+    time_step = 0.15
 
-    for _ in np.arange(0, 20, time_step):
+    fig, (ax1, ax2) = plt.subplots(2)
+
+    for ttime in np.arange(0, 60, time_step):
         x_val = []
         y_val = []
         color_val = []
+        y_val2 = []
+        z_val2 = []
+        color_val2 = []
         for holder in ustanovka.holders:
             x_val.append(holder.center_3d[0])
             y_val.append(holder.center_3d[1])
@@ -241,6 +232,8 @@ def one_dot__with_visualization():
                     x_0=point.coord[0],
                     y_0=point.coord[1],
                     z_0=point.coord[2],
+                    h1=0.1,
+                    h2=0.1,
                     y_left_border_target=mishen.y_left_border_target,
                     y_right_border_target=mishen.y_right_border_target,
                     z_lower_border_target=mishen.z_lower_border_target,
@@ -251,55 +244,85 @@ def one_dot__with_visualization():
 
                 thickness += v_p * time_step
 
+                green_intersections_xs_top = []
+                green_intersections_ys_top = []
+                red_intersections_xs_top = []
+                red_intersections_ys_top = []
                 for coord_intersection in coord_intersections:
-                    x_val.append(coord_intersection[0])
-                    y_val.append(coord_intersection[1])
+                    # x_val.append(coord_intersection[0])
+                    # y_val.append(coord_intersection[1])
+                    y_val2.append(coord_intersection[1])
+                    z_val2.append(coord_intersection[2])
                     if coord_intersection[3] == 1:
-                        color_val.append("green")
+                        green_intersections_xs_top.append(coord_intersection[0])
+                        green_intersections_ys_top.append(coord_intersection[1])
+                        # color_val.append("green")
+                        color_val2.append("green")
                     else:
-                        color_val.append("red")
+                        red_intersections_xs_top.append(coord_intersection[0])
+                        red_intersections_ys_top.append(coord_intersection[1])
+                        # color_val.append("red")
+                        color_val2.append("red")
+
+                x_val.extend(red_intersections_xs_top)
+                y_val.extend(red_intersections_ys_top)
+                color_val += ["red"] * len(red_intersections_xs_top)
+                x_val.extend(green_intersections_xs_top)
+                y_val.extend(green_intersections_ys_top)
+                color_val += ["green"] * len(green_intersections_xs_top)
 
                 x_val.append(point.coord[0])
                 y_val.append(point.coord[1])
                 color_val.append("lime")
+            print(f't={ttime} psi={math.degrees(point.current_angle):.5f} v_p={v_p:.5f}  d= {thickness:.5f}')
 
         ustanovka.move_dt(time_step)
 
-        plt.xlim(-abs(ustanovka.rad) - 5, mishen.x + 5)
-        plt.ylim(-15, 15)
+        ax1.set_xlim(-abs(ustanovka.rad) - 5, mishen.x + 5)
+        ax1.set_ylim(-15, 15)
+        ax1.scatter(x_val, y_val, color=color_val)
+
+        # для мишени
+        ax2.set_xlim(-20, 20)
+        ax2.set_ylim(-20, 20)
+        ax2.scatter(y_val2, z_val2, color=color_val2)
 
         # plt.axline((mishen.x, mishen.y_left_border_target), (mishen.x, mishen.y_right_border_target))
+        # plt.draw()
 
-        plt.scatter(x_val, y_val, color=color_val)
-        plt.draw()
+        fig.canvas.draw()
+        fig.canvas.flush_events()
         plt.pause(time_step)
-        plt.clf()
+        ax1.cla()
+        ax2.cla()
 
     print(f'Вычисленная толщина пленки: {thickness}')
 
 def one_dot(thread_count=4):
-    ustanovka = UstanovkaWithPodlozkda(0, 0, 0, 10, 7.5, 1, 11.25)
+    ustanovka = UstanovkaWithPodlozkda(0, 0, 0, 10, 1, 1, 2)
     ustanovka.make_custom_holder(0, 0)
     mishen = Mishen(30, -25.5 / 2, 25.5 / 2, -11.5 / 2, 11.5 / 2)
     print("")
+
+    v_m = 1
 
     # fig = plt.figure()
     # fig.canvas.mpl_connect('close_event', exit(0))
     thickness = 0
 
-    time_step = 0.1
+    time_step = 0.150
 
-    for _ in np.arange(0, 10, time_step):
+    for ttime in np.arange(0, 60 + time_step, time_step):
         for holder in ustanovka.holders:
             for point in holder.points:
-                v_p = double_integr_trap_multithread(
+                v_p = v_m * double_integr_trap_multithread(
                     cond_enabled=True,
                     x_0=point.coord[0],
                     y_0=point.coord[1],
                     z_0=point.coord[2],
-                    h1=0.01,
-                    h2=0.01,
-                    thread_count=thread_count,
+                    h1=0.1,
+                    h2=0.1,
+                    # thread_count=thread_count,
                     y_left_border_target=mishen.y_left_border_target,
                     y_right_border_target=mishen.y_right_border_target,
                     z_lower_border_target=mishen.z_lower_border_target,
@@ -307,24 +330,26 @@ def one_dot(thread_count=4):
                     l=mishen.x,
                     ksi=point.current_angle,
                 )
-
+                # v_p = v_p * (1 / math.pi)
                 thickness += v_p * time_step
 
+        print(f't={ttime:.3f} psi={math.degrees(holder.current_angle):.3f} ksi={math.degrees(point.current_angle):.3f} v_p={v_p:.3f}  d= {thickness:.3f}')
+        # exit(0)
         ustanovka.move_dt(time_step)
 
     print(f'Вычисленная толщина пленки: {thickness}')
 
 
 if __name__ == "__main__":
-    logging.basicConfig(level=logging.INFO)
+    logging.basicConfig(stream=sys.stdout, level=logging.INFO)
     # one_dot__with_visualization()
-    start = time.time()
+    # start = time.time()
     one_dot()
-    end = time.time()
-    print(end - start)
+    # end = time.time()
+    # print(end - start)
 
-    start = time.time()
-    one_dot(thread_count=1)
-    end = time.time()
-    print(end - start)
+    # start = time.time()
+    # one_dot(thread_count=1)
+    # end = time.time()
+    # print(end - start)
     # calc_plain_z_axis_multiple_points()
