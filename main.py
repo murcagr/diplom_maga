@@ -298,7 +298,7 @@ def one_dot__with_visualization(thread_count=4, minutes=1, omega_b=1, omega_o=2,
 
     print(f'Вычисленная толщина пленки: {thickness}')
 
-def one_dot(thread_count=1, minutes=1, omega_b=1, omega_o=2, ksi=0, k=1):
+def one_dot(thread_count=16, minutes=1, omega_b=1, omega_o=2, ksi=0, k=0):
     ustanovka = UstanovkaWithPodlozkda(0, 0, 0, 10, omega_b, 1, omega_o)
     ustanovka.make_custom_holder(0, ksi)
     mishen = Mishen(30, -25.5 / 2, 25.5 / 2, -11.5 / 2, 11.5 / 2)
@@ -377,7 +377,7 @@ if __name__ == "__main__":
     # # one_dot__with_visualization(omega_b=1, omega_o=2, minutes=1, ksi=0)
     # end = time.time()
     # print(end - start)
-    # issled_one_dot(omega_b=1, omega_o=2, minutes=1)
+    issled_one_dot(omega_b=1, omega_o=2, minutes=1, k=0)
 
     # start = time.time()
     # one_dot(thread_count=1)
