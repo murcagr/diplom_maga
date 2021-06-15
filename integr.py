@@ -100,7 +100,7 @@ def double_integr_trap_multithread(
     h2=0.1,
     cond_enabled=False,
     ksi=0,
-    thread_count=1,
+    thread_count=4,
     z_lower_border_target=-12.75,
     z_higher_border_target=12.75,
     y_left_border_target=-5.75,
@@ -169,7 +169,7 @@ def double_integr_trap_multithread(
     res = h1 * h2 * sum(results_array)
     # / ((b1 - a1) * (b2 - a1))
 
-    return res
+    return res, []
 
 
 def calc_for(

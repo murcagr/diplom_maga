@@ -298,31 +298,29 @@ def one_dot__with_visualization():
 
     print(f'Вычисленная толщина пленки: {thickness}')
 
-def one_dot(thread_count=4):
-    ustanovka = UstanovkaWithPodlozkda(0, 0, 0, 10, 1, 1, 2)
-    ustanovka.make_custom_holder(0, 0)
+def one_dot(thread_count=4, minutes=1, omega_b=1, omega_o=2, ksi=0):
+    ustanovka = UstanovkaWithPodlozkda(0, 0, 0, 10, omega_b, 1, omega_o)
+    ustanovka.make_custom_holder(90, ksi)
     mishen = Mishen(30, -25.5 / 2, 25.5 / 2, -11.5 / 2, 11.5 / 2)
-    print("")
-
+    end_time = minutes * 60
     v_m = 1
 
     # fig = plt.figure()
     # fig.canvas.mpl_connect('close_event', exit(0))
     thickness = 0
+    time_step = 0.15
 
-    time_step = 0.150
-
-    for ttime in np.arange(0, 60 + time_step, time_step):
+    for ttime in np.arange(0, end_time + time_step, time_step):
         for holder in ustanovka.holders:
             for point in holder.points:
-                v_p = v_m * double_integr_trap_multithread(
+                v_p, _ = v_m * double_integr_trap_multithread(
                     cond_enabled=True,
                     x_0=point.coord[0],
                     y_0=point.coord[1],
                     z_0=point.coord[2],
-                    h1=0.1,
-                    h2=0.1,
-                    # thread_count=thread_count,
+                    h1=0.01,
+                    h2=0.01,
+                    thread_count=thread_count,
                     y_left_border_target=mishen.y_left_border_target,
                     y_right_border_target=mishen.y_right_border_target,
                     z_lower_border_target=mishen.z_lower_border_target,
@@ -344,7 +342,7 @@ if __name__ == "__main__":
     logging.basicConfig(stream=sys.stdout, level=logging.INFO)
     # one_dot__with_visualization()
     # start = time.time()
-    one_dot()
+    one_dot(omega_b=1, omega_o=2, minutes=1, ksi=0)
     # end = time.time()
     # print(end - start)
 
