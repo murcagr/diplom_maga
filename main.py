@@ -312,7 +312,7 @@ def one_dot(thread_count=4, minutes=1, omega_b=1, omega_o=2, ksi=0):
     for ttime in np.arange(0, end_time + time_step, time_step):
         for holder in ustanovka.holders:
             for point in holder.points:
-                v_p, _ = v_m * double_integr_trap(
+                v_p, _ = v_m * double_integr_trap_multithread(
                     cond_enabled=True,
                     x_0=point.coord[0],
                     y_0=point.coord[1],
@@ -340,11 +340,11 @@ def one_dot(thread_count=4, minutes=1, omega_b=1, omega_o=2, ksi=0):
 if __name__ == "__main__":
     logging.basicConfig(stream=sys.stdout, level=logging.INFO)
     # one_dot__with_visualization()
-    # start = time.time()
+    start = time.time()
     one_dot(omega_b=1, omega_o=2, minutes=1, ksi=0, thread_count=6)
-    # one_dot__with_visualization(omega_b=1, omega_o=2, minutes=1, ksi=0)
-    # end = time.time()
-    # print(end - start)
+    one_dot__with_visualization(omega_b=1, omega_o=2, minutes=1, ksi=0)
+    end = time.time()
+    print(end - start)
 
     # start = time.time()
     # one_dot(thread_count=1)
