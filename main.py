@@ -312,14 +312,14 @@ def one_dot(thread_count=4, minutes=1, omega_b=1, omega_o=2, ksi=0):
     for ttime in np.arange(0, end_time + time_step, time_step):
         for holder in ustanovka.holders:
             for point in holder.points:
-                v_p, _ = v_m * double_integr_trap_multithread(
+                v_p, _ = v_m * double_integr_trap(
                     cond_enabled=True,
                     x_0=point.coord[0],
                     y_0=point.coord[1],
                     z_0=point.coord[2],
                     h1=0.01,
                     h2=0.01,
-                    thread_count=thread_count,
+                    # thread_count=thread_count,
                     y_left_border_target=mishen.y_left_border_target,
                     y_right_border_target=mishen.y_right_border_target,
                     z_lower_border_target=mishen.z_lower_border_target,
