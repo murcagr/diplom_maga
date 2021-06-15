@@ -100,6 +100,7 @@ def double_integr_trap_multithread(
     h2=0.1,
     cond_enabled=False,
     ksi=0,
+    k=1,
     thread_count=4,
     z_lower_border_target=-12.75,
     z_higher_border_target=12.75,
@@ -146,6 +147,7 @@ def double_integr_trap_multithread(
                     h2,
                     cond_enabled,
                     ksi,
+                    k,
                     z_lower_border_target,
                     z_higher_border_target,
                     y_left_border_target,
@@ -182,6 +184,7 @@ def calc_for(
     h2=0.1,
     cond_enabled=False,
     ksi=0,
+    k=1,
     z_lower_border_target=-12.75,
     z_higher_border_target=12.75,
     y_left_border_target=-5.75,
@@ -204,6 +207,8 @@ def calc_for(
             y = a2 + j * h1
 
             logging.debug(f'Фи и Тета: {math.degrees(x):.5f}, {math.degrees(y):.5f}')
+            distance = 0
+
             if cond_enabled:
                 s_1_podv = math.cos(y)
                 s_2_podv = math.sin(y) * math.sin(x)
@@ -235,6 +240,8 @@ def calc_for(
                 logging.debug(f"{Fore.GREEN}Луч пересекает поверхность{Style.RESET_ALL}")
                 coord_list.append([x_1, y_1, z_1, 1])
 
+                # distance = math.sqrt((x_1 - x_0) ** 2 + (y_1 - y_0) ** 2 + (z_1 - z_0) ** 2)
+
             if i > 0 and i < N and j > 0 and j < M:
                 w = 1
             elif (i == 0 or i == M) and (j == 0 or j == N):
@@ -243,8 +250,11 @@ def calc_for(
                 w = 0.5
 
             logging.debug(f"{w * func(x, y)}")
-
-            summ += w * func(x, y)
+            # print(distance)
+            # print(k)
+            # print(-k * distance)
+            # print(math.exp(-k * distance))
+            summ += w * func(x, y) # * math.exp(-k * distance)
 
     return summ
 

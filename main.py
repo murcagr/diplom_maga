@@ -10,6 +10,7 @@ import time
 import tkinter as tk
 from shapely.geometry import LineString
 import sys
+import csv
 
 from integr import double_integr_trap, double_integr_trap_multithread
 
@@ -319,6 +320,7 @@ def one_dot(thread_count=4, minutes=1, omega_b=1, omega_o=2, ksi=0):
                     z_0=point.coord[2],
                     h1=0.01,
                     h2=0.01,
+                    k=1,
                     thread_count=thread_count,
                     y_left_border_target=mishen.y_left_border_target,
                     y_right_border_target=mishen.y_right_border_target,
@@ -331,23 +333,39 @@ def one_dot(thread_count=4, minutes=1, omega_b=1, omega_o=2, ksi=0):
                 thickness += v_p * time_step
 
         print(f't={ttime:.3f} psi={math.degrees(holder.current_angle):.3f} ksi={math.degrees(point.current_angle):.3f} v_p={v_p:.3f}  d= {thickness:.3f}')
-        # exit(0)
         ustanovka.move_dt(time_step)
 
-    print(f'Вычисленная толщина пленки: {thickness}')
+    print(f'd: {thickness}')
+    return thickness
 
 def issled_one_dot(omega_b=1, omega_o=2, minutes=1):
-    one_dot(omega_b=1, omega_o=2, minutes=1, ksi=0)
-    one_dot(omega_b=1, omega_o=2, minutes=1, ksi=45)
-    one_dot(omega_b=1, omega_o=2, minutes=1, ksi=90)
-    one_dot(omega_b=1, omega_o=2, minutes=1, ksi=135)
-    one_dot(omega_b=1, omega_o=2, minutes=1, ksi=180)
-    one_dot(omega_b=1, omega_o=2, minutes=1, ksi=225)
-    one_dot(omega_b=1, omega_o=2, minutes=1, ksi=270)
-    one_dot(omega_b=1, omega_o=2, minutes=1, ksi=315)
+
+    file = open(f'table_{omega_b}_{omega_o}_{minutes}.csv', 'w')
+
+    writer = csv.writer(file)
+    writer.writerow([f"omega_b={omega_b}", f"omega_o={omega_o}", f"minutes={minutes}"])
+    writer.writerow(["angle", "d"])
+    d = one_dot(omega_b=omega_b, omega_o=omega_o, minutes=minutes, ksi=0)
+    writer.writerow(["0", f"{d}"])
+    d = one_dot(omega_b=omega_b, omega_o=omega_o, minutes=minutes, ksi=45)
+    writer.writerow(["45", f"{d}"])
+    d = one_dot(omega_b=omega_b, omega_o=omega_o, minutes=minutes, ksi=90)
+    writer.writerow(["90", f"{d}"])
+    d = one_dot(omega_b=omega_b, omega_o=omega_o, minutes=minutes, ksi=135)
+    writer.writerow(["135", f"{d}"])
+    d = one_dot(omega_b=omega_b, omega_o=omega_o, minutes=minutes, ksi=180)
+    writer.writerow(["180", f"{d}"])
+    d = one_dot(omega_b=omega_b, omega_o=omega_o, minutes=minutes, ksi=225)
+    writer.writerow(["225", f"{d}"])
+    d = one_dot(omega_b=omega_b, omega_o=omega_o, minutes=minutes, ksi=270)
+    writer.writerow(["270", f"{d}"])
+    d = one_dot(omega_b=omega_b, omega_o=omega_o, minutes=minutes, ksi=315)
+    writer.writerow(["315", f"{d}"])
+    file.close()
 
 if __name__ == "__main__":
     logging.basicConfig(stream=sys.stdout, level=logging.INFO)
+    # one_dot(omega_b=1, omega_o=2, minutes=0.5, ksi=0)
     # # one_dot__with_visualization()
     # start = time.time()
     # # one_dot(omega_b=1, omega_o=2, minutes=1, ksi=0, thread_count=4)
