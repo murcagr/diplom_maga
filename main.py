@@ -317,8 +317,8 @@ def one_dot(thread_count=4, minutes=1, omega_b=1, omega_o=2, ksi=0):
                     x_0=point.coord[0],
                     y_0=point.coord[1],
                     z_0=point.coord[2],
-                    h1=0.001,
-                    h2=0.001,
+                    h1=0.01,
+                    h2=0.01,
                     thread_count=thread_count,
                     y_left_border_target=mishen.y_left_border_target,
                     y_right_border_target=mishen.y_right_border_target,
@@ -341,7 +341,7 @@ if __name__ == "__main__":
     logging.basicConfig(stream=sys.stdout, level=logging.INFO)
     # one_dot__with_visualization()
     start = time.time()
-    one_dot(omega_b=1, omega_o=2, minutes=0.5, ksi=0, thread_count=8)
+    one_dot(omega_b=1, omega_o=2, minutes=0.17, ksi=0, thread_count=8)
     # one_dot__with_visualization(omega_b=1, omega_o=2, minutes=1, ksi=0)
     end = time.time()
     print(end - start)
