@@ -341,8 +341,8 @@ if __name__ == "__main__":
     logging.basicConfig(stream=sys.stdout, level=logging.INFO)
     # one_dot__with_visualization()
     start = time.time()
-    one_dot(omega_b=1, omega_o=2, minutes=1, ksi=0, thread_count=6)
-    one_dot__with_visualization(omega_b=1, omega_o=2, minutes=1, ksi=0)
+    one_dot(omega_b=1, omega_o=2, minutes=0.5, ksi=0, thread_count=8)
+    # one_dot__with_visualization(omega_b=1, omega_o=2, minutes=1, ksi=0)
     end = time.time()
     print(end - start)
 
