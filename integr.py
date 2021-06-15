@@ -112,12 +112,8 @@ def double_integr_trap_multithread(
     l=10,
 ):
 
-    N = int((a2 + b2) / h2)
-    M = int((a1 + b1) / h1)
-
-    summ = 0
-
-    coord_list = []
+    N = int((b2 - a2) / h2)
+    M = int((b1 - a1) / h1)
 
     curr = 0
     end = N
@@ -135,6 +131,7 @@ def double_integr_trap_multithread(
                 curr = N
 
             # print(curr)
+
             futures.append(
                 executor.submit(
                     calc_for,
@@ -201,9 +198,9 @@ def calc_for(
 
     summ = 0
     coord_list = []
-    for i in range(prev, curr):
+    for i in range(prev, curr + 2):
         x = a1 + i * h2
-        for j in range(0, M):
+        for j in range(0, M + 2):
             y = a2 + j * h1
 
             logging.debug(f'Фи и Тета: {math.degrees(x):.5f}, {math.degrees(y):.5f}')
@@ -240,7 +237,7 @@ def calc_for(
                 logging.debug(f"{Fore.GREEN}Луч пересекает поверхность{Style.RESET_ALL}")
                 coord_list.append([x_1, y_1, z_1, 1])
 
-                # distance = math.sqrt((x_1 - x_0) ** 2 + (y_1 - y_0) ** 2 + (z_1 - z_0) ** 2)
+                distance = math.sqrt((x_1 - x_0) ** 2 + (y_1 - y_0) ** 2 + (z_1 - z_0) ** 2)
 
             if i > 0 and i < N and j > 0 and j < M:
                 w = 1
@@ -254,7 +251,7 @@ def calc_for(
             # print(k)
             # print(-k * distance)
             # print(math.exp(-k * distance))
-            summ += w * func(x, y) # * math.exp(-k * distance)
+            summ += w * func(x, y) * math.exp(-k * distance / 100)
 
     return summ
 
