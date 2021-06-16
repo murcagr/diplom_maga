@@ -1,4 +1,5 @@
 import logging
+from os import write
 import scipy.integrate as integrate
 import scipy.constants as constants
 import numpy as np
@@ -298,19 +299,17 @@ def one_dot__with_visualization(thread_count=4, minutes=1, omega_b=1, omega_o=2,
 
     print(f'Вычисленная толщина пленки: {thickness}')
 
-def one_dot(thread_count=16, minutes=1, omega_b=1, omega_o=2, ksi=0, k=0):
+def one_dot(thread_count=16, minutes=1, omega_b=1, omega_o=2, ksi=0, k=0, h1=0.01, h2=0.01, time_step=0.15):
     ustanovka = UstanovkaWithPodlozkda(0, 0, 0, 10, omega_b, 1, omega_o)
-    ustanovka.make_custom_holder(90, ksi)
+    ustanovka.make_custom_holder(0, ksi)
     mishen = Mishen(30, -25.5 / 2, 25.5 / 2, -11.5 / 2, 11.5 / 2)
     end_time = minutes * 60
     v_m = 1
 
-    file = open(f'res_ob{omega_b}_oo{omega_o}_m{minutes}_k{k}.txt', 'w')
+    # file = open(f'res_ob{omega_b}_oo{omega_o}_m{minutes}_k{k}.txt', 'w')
 
-    # fig = plt.figure()
-    # fig.canvas.mpl_connect('close_event', exit(0))
     thickness = 0
-    time_step = 0.15
+    time_step = time_step
 
     for ttime in np.arange(0, end_time + time_step, time_step):
         for holder in ustanovka.holders:
@@ -320,8 +319,8 @@ def one_dot(thread_count=16, minutes=1, omega_b=1, omega_o=2, ksi=0, k=0):
                     x_0=point.coord[0],
                     y_0=point.coord[1],
                     z_0=point.coord[2],
-                    h1=0.01,
-                    h2=0.01,
+                    h1=h1,
+                    h2=h2,
                     k=k,
                     thread_count=thread_count,
                     y_left_border_target=mishen.y_left_border_target,
@@ -336,11 +335,11 @@ def one_dot(thread_count=16, minutes=1, omega_b=1, omega_o=2, ksi=0, k=0):
                 thickness += v_p * time_step
 
         print(f't={ttime:.3f} psi={math.degrees(holder.current_angle):.3f} ksi={math.degrees(point.current_angle):.3f} v_p={v_p:.3f}  d= {thickness:.3f}')
-        file.write(f't={ttime:.3f} psi={math.degrees(holder.current_angle):.3f} ksi={math.degrees(point.current_angle):.3f} v_p={v_p:.3f}  d={thickness:.3f}\n')
+        # file.write(f't={ttime:.3f} psi={math.degrees(holder.current_angle):.3f} ksi={math.degrees(point.current_angle):.3f} v_p={v_p:.3f}  d={thickness:.3f}\n')
         ustanovka.move_dt(time_step)
 
     print(f'd: {thickness}')
-    file.close()
+    # file.close()
     return thickness
 
 def issled_one_dot(omega_b=1, omega_o=2, minutes=1, k=0):
@@ -368,17 +367,73 @@ def issled_one_dot(omega_b=1, omega_o=2, minutes=1, k=0):
     writer.writerow(["315", f"{d}"])
     file.close()
 
+def issled_multiple_one_dot():
+    issled_one_dot(omega_b=1, omega_o=2, minutes=1, k=0)
+    issled_one_dot(omega_b=1, omega_o=2, minutes=1, k=0)
+    issled_one_dot(omega_b=1, omega_o=2, minutes=1, k=0)
+    issled_one_dot(omega_b=1, omega_o=2, minutes=1, k=0)
+    issled_one_dot(omega_b=1, omega_o=2, minutes=1, k=0)
+    issled_one_dot(omega_b=1, omega_o=2, minutes=1, k=0)
+    issled_one_dot(omega_b=1, omega_o=2, minutes=1, k=0)
+    issled_one_dot(omega_b=1, omega_o=2, minutes=1, k=0)
+
+def issled_time(omega_b=1, omega_o=2, minutes=1, ksi=0, k=0, h1=0.01, h2=0.01, time_step=0.15, thread_count=16):
+    start = time.time()
+    res = one_dot(omega_b=omega_b, omega_o=omega_o, minutes=minutes, ksi=ksi, k=k, h1=h1, h2=h2, time_step=time_step, thread_count=thread_count)
+    end = time.time()
+    print(end - start)
+    return [omega_b, omega_o, minutes, ksi, k, h1, h2, time_step, thread_count, end - start, res]
+
+def issled_time_multiple():
+    file = open('table_time.csv', 'w')
+
+    writer = csv.writer(file)
+    ress = [["omega_b", "omega_o", "minutes", "ksi", "k", "h1", "h2", "time_step", "thread_count", "time", "res"]]
+    res = issled_time(omega_b=1, omega_o=2, minutes=1, ksi=0, k=0, h1=0.1, h2=0.1, time_step=0.15, thread_count=16)
+    ress.append(res)
+    res = issled_time(omega_b=1, omega_o=2, minutes=1, ksi=0, k=0, h1=1, h2=1, time_step=0.15, thread_count=16)
+    ress.append(res)
+    res = issled_time(omega_b=1, omega_o=2, minutes=1, ksi=0, k=0, h1=math.pi / 10, h2=math.pi / 10, time_step=0.15, thread_count=16)
+    ress.append(res)
+    res = issled_time(omega_b=1, omega_o=2, minutes=1, ksi=0, k=0, h1=math.pi / 20, h2=math.pi / 20, time_step=0.15, thread_count=16)
+    ress.append(res)
+    res = issled_time(omega_b=1, omega_o=2, minutes=1, ksi=0, k=0, h1=math.pi / 40, h2=math.pi / 40, time_step=0.15, thread_count=16)
+    ress.append(res)
+    res = issled_time(omega_b=1, omega_o=2, minutes=1, ksi=0, k=0, h1=math.pi / 80, h2=math.pi / 80, time_step=0.15, thread_count=16)
+    ress.append(res)
+    res = issled_time(omega_b=1, omega_o=2, minutes=1, ksi=0, k=0, h1=math.pi / 100, h2=math.pi / 100, time_step=0.15, thread_count=16)
+    ress.append(res)
+    res = issled_time(omega_b=1, omega_o=2, minutes=1, ksi=0, k=0, h1=math.pi / 200, h2=math.pi / 200, time_step=0.15, thread_count=16)
+    ress.append(res)
+    # res = issled_time(omega_b=1, omega_o=2, minutes=1, ksi=0, k=0, h1=0.1, h2=0.1, time_step=0.15, thread_count=16)
+    # ress.append(res)
+    res = issled_time(omega_b=1, omega_o=2, minutes=1, ksi=0, k=0, h1=0.05, h2=0.05, time_step=0.15, thread_count=16)
+    ress.append(res)
+    res = issled_time(omega_b=1, omega_o=2, minutes=1, ksi=0, k=0, h1=0.02, h2=0.02, time_step=0.15, thread_count=16)
+    ress.append(res)
+    res = issled_time(omega_b=1, omega_o=2, minutes=1, ksi=0, k=0, h1=0.01, h2=0.01, time_step=0.15, thread_count=16)
+    ress.append(res)
+    # res = issled_time(omega_b=1, omega_o=2, minutes=1, ksi=0, k=0, h1=0.01, h2=0.01, time_step=0.15, thread_count=16)
+    # ress.append(res)
+    res = issled_time(omega_b=1, omega_o=2, minutes=1, ksi=0, k=0, h1=0.005, h2=0.005, time_step=0.15, thread_count=16)
+    ress.append(res)
+    res = issled_time(omega_b=1, omega_o=2, minutes=1, ksi=0, k=0, h1=0.001, h2=0.001, time_step=0.15, thread_count=16)
+    ress.append(res)
+    for elem in ress:
+        writer.writerow(elem)
+    file.close()
+
+
 if __name__ == "__main__":
     logging.basicConfig(stream=sys.stdout, level=logging.INFO)
-    one_dot(omega_b=1, omega_o=2, minutes=1, ksi=0, k=0)
     # # one_dot__with_visualization()
     # start = time.time()
-    # # one_dot(omega_b=1, omega_o=2, minutes=1, ksi=0, thread_count=4)
-    # # one_dot__with_visualization(omega_b=1, omega_o=2, minutes=1, ksi=0)
+    # one_dot(omega_b=1, omega_o=1, minutes=1, ksi=0, k=0)
     # end = time.time()
     # print(end - start)
-    # issled_one_dot(omega_b=1, omega_o=2, minutes=1, k=0)
-
+    # # one_dot(omega_b=1, omega_o=2, minutes=1, ksi=0, thread_count=4)
+    # # one_dot__with_visualization(omega_b=1, omega_o=2, minutes=1, ksi=0)
+    issled_time_multiple()
     # start = time.time()
     # one_dot(thread_count=1)
     # end = time.time()

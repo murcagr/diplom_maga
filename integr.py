@@ -251,7 +251,8 @@ def calc_for(
             # print(k)
             # print(-k * distance)
             # print(math.exp(-k * distance))
-            summ += w * func(x, y) #* math.exp(-k * distance)
+            summ += w * func(x, y) * math.exp(-k * distance)
+            # summ += (w * func(x, y)) / ((1) ** 2)
 
     return summ
 
