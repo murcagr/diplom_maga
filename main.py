@@ -13,6 +13,8 @@ from shapely.geometry import LineString
 import sys
 import csv
 
+import concurrent.futures
+
 from integr import double_integr_trap, double_integr_trap_multithread
 
 # https://www.reddit.com/r/Unity2D/comments/34qm8v/how_to_move_an_object_in_a_circular_pattern/
@@ -334,7 +336,7 @@ def one_dot(thread_count=16, minutes=1, omega_b=1, omega_o=2, ksi=0, k=0, h1=0.0
                 # v_p = v_p * (1 / math.pi)
                 thickness += v_p * time_step
 
-        print(f't={ttime:.3f} psi={math.degrees(holder.current_angle):.3f} ksi={math.degrees(point.current_angle):.3f} v_p={v_p:.3f}  d= {thickness:.3f}')
+        # print(f't={ttime:.3f} psi={math.degrees(holder.current_angle):.3f} ksi={math.degrees(point.current_angle):.3f} v_p={v_p:.3f}  d= {thickness:.3f}')
         # file.write(f't={ttime:.3f} psi={math.degrees(holder.current_angle):.3f} ksi={math.degrees(point.current_angle):.3f} v_p={v_p:.3f}  d={thickness:.3f}\n')
         ustanovka.move_dt(time_step)
 
@@ -342,40 +344,47 @@ def one_dot(thread_count=16, minutes=1, omega_b=1, omega_o=2, ksi=0, k=0, h1=0.0
     # file.close()
     return thickness
 
-def issled_one_dot(omega_b=1, omega_o=2, minutes=1, k=0):
+def issled_one_dot(omega_b=1, omega_o=2, minutes=1, k=0, h1=0.01, h2=0.01):
 
     file = open(f'table_ob{omega_b}_oo{omega_o}_m{minutes}_k{k}.csv', 'w')
 
     writer = csv.writer(file)
     writer.writerow([f"omega_b={omega_b}", f"omega_o={omega_o}", f"minutes={minutes}"])
     writer.writerow(["angle", "d"])
-    d = one_dot(omega_b=omega_b, omega_o=omega_o, minutes=minutes, ksi=0, k=k)
+    d = one_dot(omega_b=omega_b, omega_o=omega_o, minutes=minutes, ksi=0, k=k, h1=h1, h2=h2)
     writer.writerow(["0", f"{d}"])
-    d = one_dot(omega_b=omega_b, omega_o=omega_o, minutes=minutes, ksi=45, k=k)
+    d = one_dot(omega_b=omega_b, omega_o=omega_o, minutes=minutes, ksi=45, k=k, h1=h1, h2=h2)
     writer.writerow(["45", f"{d}"])
-    d = one_dot(omega_b=omega_b, omega_o=omega_o, minutes=minutes, ksi=90, k=k)
+    d = one_dot(omega_b=omega_b, omega_o=omega_o, minutes=minutes, ksi=90, k=k, h1=h1, h2=h2)
     writer.writerow(["90", f"{d}"])
-    d = one_dot(omega_b=omega_b, omega_o=omega_o, minutes=minutes, ksi=135, k=k)
+    d = one_dot(omega_b=omega_b, omega_o=omega_o, minutes=minutes, ksi=135, k=k, h1=h1, h2=h2)
     writer.writerow(["135", f"{d}"])
-    d = one_dot(omega_b=omega_b, omega_o=omega_o, minutes=minutes, ksi=180, k=k)
+    d = one_dot(omega_b=omega_b, omega_o=omega_o, minutes=minutes, ksi=180, k=k, h1=h1, h2=h2)
     writer.writerow(["180", f"{d}"])
-    d = one_dot(omega_b=omega_b, omega_o=omega_o, minutes=minutes, ksi=225, k=k)
+    d = one_dot(omega_b=omega_b, omega_o=omega_o, minutes=minutes, ksi=225, k=k, h1=h1, h2=h2)
     writer.writerow(["225", f"{d}"])
-    d = one_dot(omega_b=omega_b, omega_o=omega_o, minutes=minutes, ksi=270, k=k)
+    d = one_dot(omega_b=omega_b, omega_o=omega_o, minutes=minutes, ksi=270, k=k, h1=h1, h2=h2)
     writer.writerow(["270", f"{d}"])
-    d = one_dot(omega_b=omega_b, omega_o=omega_o, minutes=minutes, ksi=315, k=k)
+    d = one_dot(omega_b=omega_b, omega_o=omega_o, minutes=minutes, ksi=315, k=k, h1=h1, h2=h2)
     writer.writerow(["315", f"{d}"])
     file.close()
 
 def issled_multiple_one_dot():
-    issled_one_dot(omega_b=1, omega_o=2, minutes=1, k=0)
-    issled_one_dot(omega_b=1, omega_o=2, minutes=1, k=0)
-    issled_one_dot(omega_b=1, omega_o=2, minutes=1, k=0)
-    issled_one_dot(omega_b=1, omega_o=2, minutes=1, k=0)
-    issled_one_dot(omega_b=1, omega_o=2, minutes=1, k=0)
-    issled_one_dot(omega_b=1, omega_o=2, minutes=1, k=0)
-    issled_one_dot(omega_b=1, omega_o=2, minutes=1, k=0)
-    issled_one_dot(omega_b=1, omega_o=2, minutes=1, k=0)
+    with concurrent.futures.ProcessPoolExecutor() as executor:
+        futures = []
+        for i in range(1, 101):
+            futures.append(executor.submit(issled_one_dot, omega_b=1, omega_o=i, minutes=1, k=0, h1=math.pi / 10, h2=math.pi / 10))
+
+        for future in concurrent.futures.as_completed(futures):
+            print("ended")
+
+    # issled_one_dot(omega_b=1, omega_o=7, minutes=1, k=0)
+    # issled_one_dot(omega_b=1, omega_o=2, minutes=1, k=0)
+    # issled_one_dot(omega_b=1, omega_o=2, minutes=1, k=0)
+    # issled_one_dot(omega_b=1, omega_o=2, minutes=1, k=0)
+    # issled_one_dot(omega_b=1, omega_o=2, minutes=1, k=0)
+    # issled_one_dot(omega_b=1, omega_o=2, minutes=1, k=0)
+    # issled_one_dot(omega_b=1, omega_o=2, minutes=1, k=0)
 
 def issled_time(omega_b=1, omega_o=2, minutes=1, ksi=0, k=0, h1=0.01, h2=0.01, time_step=0.15, thread_count=16):
     start = time.time()
@@ -385,7 +394,7 @@ def issled_time(omega_b=1, omega_o=2, minutes=1, ksi=0, k=0, h1=0.01, h2=0.01, t
     return [omega_b, omega_o, minutes, ksi, k, h1, h2, time_step, thread_count, end - start, res]
 
 def issled_time_multiple():
-    file = open('table_time.csv', 'w')
+    file = open('table_time .csv', 'a')
 
     writer = csv.writer(file)
     ress = [["omega_b", "omega_o", "minutes", "ksi", "k", "h1", "h2", "time_step", "thread_count", "time", "res"]]
@@ -424,7 +433,8 @@ if __name__ == "__main__":
     # print(end - start)
     # # one_dot(omega_b=1, omega_o=2, minutes=1, ksi=0, thread_count=4)
     # # one_dot__with_visualization(omega_b=1, omega_o=2, minutes=1, ksi=0)
-    issled_time_multiple()
+    # issled_time_multiple()
+    issled_multiple_one_dot()
     # start = time.time()
     # one_dot(thread_count=1)
     # end = time.time()
