@@ -15,7 +15,7 @@ import csv
 
 import concurrent.futures
 
-from integr import double_integr_trap, double_integr_trap_multithread
+from integr import double_integr_trap, double_integr_trap_multithread, midpoint_double_multithread
 
 # https://www.reddit.com/r/Unity2D/comments/34qm8v/how_to_move_an_object_in_a_circular_pattern/
 A_t = 15
@@ -301,7 +301,7 @@ def one_dot__with_visualization(thread_count=4, minutes=1, omega_b=1, omega_o=2,
 
     print(f'Вычисленная толщина пленки: {thickness}')
 
-def one_dot(thread_count=16, minutes=1, omega_b=1, omega_o=2, ksi=0, k=0, h1=0.01, h2=0.01, time_step=0.15):
+def one_dot(thread_count=16, minutes=1, omega_b=1, omega_o=2, ksi=0, k=0, nx=100, ny=100, time_step=0.15):
     ustanovka = UstanovkaWithPodlozkda(0, 0, 0, 10, omega_b, 1, omega_o)
     ustanovka.make_custom_holder(0, ksi)
     mishen = Mishen(30, -25.5 / 2, 25.5 / 2, -11.5 / 2, 11.5 / 2)
@@ -316,13 +316,13 @@ def one_dot(thread_count=16, minutes=1, omega_b=1, omega_o=2, ksi=0, k=0, h1=0.0
     for ttime in np.arange(0, end_time + time_step, time_step):
         for holder in ustanovka.holders:
             for point in holder.points:
-                v_p, _ = v_m * double_integr_trap_multithread(
+                v_p, _ = v_m * midpoint_double_multithread(
                     cond_enabled=True,
                     x_0=point.coord[0],
                     y_0=point.coord[1],
                     z_0=point.coord[2],
-                    h1=h1,
-                    h2=h2,
+                    nx=nx,
+                    ny=ny,
                     k=k,
                     thread_count=thread_count,
                     y_left_border_target=mishen.y_left_border_target,
@@ -344,79 +344,108 @@ def one_dot(thread_count=16, minutes=1, omega_b=1, omega_o=2, ksi=0, k=0, h1=0.0
     # file.close()
     return thickness
 
-def issled_one_dot(omega_b=1, omega_o=2, minutes=1, k=0, h1=0.01, h2=0.01):
+def issled_one_dot(omega_b=1, omega_o=2, minutes=1, k=0, nx=100, ny=100):
 
     file = open(f'table_ob{omega_b}_oo{omega_o}_m{minutes}_k{k}.csv', 'w')
 
     writer = csv.writer(file)
     writer.writerow([f"omega_b={omega_b}", f"omega_o={omega_o}", f"minutes={minutes}"])
     writer.writerow(["angle", "d"])
-    d = one_dot(omega_b=omega_b, omega_o=omega_o, minutes=minutes, ksi=0, k=k, h1=h1, h2=h2)
+    d = one_dot(omega_b=omega_b, omega_o=omega_o, minutes=minutes, ksi=0, k=k, nx=nx, ny=ny)
     writer.writerow(["0", f"{d}"])
-    d = one_dot(omega_b=omega_b, omega_o=omega_o, minutes=minutes, ksi=45, k=k, h1=h1, h2=h2)
+    d = one_dot(omega_b=omega_b, omega_o=omega_o, minutes=minutes, ksi=45, k=k, nx=nx, ny=ny)
     writer.writerow(["45", f"{d}"])
-    d = one_dot(omega_b=omega_b, omega_o=omega_o, minutes=minutes, ksi=90, k=k, h1=h1, h2=h2)
+    d = one_dot(omega_b=omega_b, omega_o=omega_o, minutes=minutes, ksi=90, k=k, nx=nx, ny=ny)
     writer.writerow(["90", f"{d}"])
-    d = one_dot(omega_b=omega_b, omega_o=omega_o, minutes=minutes, ksi=135, k=k, h1=h1, h2=h2)
+    d = one_dot(omega_b=omega_b, omega_o=omega_o, minutes=minutes, ksi=135, k=k, nx=nx, ny=ny)
     writer.writerow(["135", f"{d}"])
-    d = one_dot(omega_b=omega_b, omega_o=omega_o, minutes=minutes, ksi=180, k=k, h1=h1, h2=h2)
+    d = one_dot(omega_b=omega_b, omega_o=omega_o, minutes=minutes, ksi=180, k=k, nx=nx, ny=ny)
     writer.writerow(["180", f"{d}"])
-    d = one_dot(omega_b=omega_b, omega_o=omega_o, minutes=minutes, ksi=225, k=k, h1=h1, h2=h2)
+    d = one_dot(omega_b=omega_b, omega_o=omega_o, minutes=minutes, ksi=225, k=k, nx=nx, ny=ny)
     writer.writerow(["225", f"{d}"])
-    d = one_dot(omega_b=omega_b, omega_o=omega_o, minutes=minutes, ksi=270, k=k, h1=h1, h2=h2)
+    d = one_dot(omega_b=omega_b, omega_o=omega_o, minutes=minutes, ksi=270, k=k, nx=nx, ny=ny)
     writer.writerow(["270", f"{d}"])
-    d = one_dot(omega_b=omega_b, omega_o=omega_o, minutes=minutes, ksi=315, k=k, h1=h1, h2=h2)
+    d = one_dot(omega_b=omega_b, omega_o=omega_o, minutes=minutes, ksi=315, k=k, nx=nx, ny=ny)
     writer.writerow(["315", f"{d}"])
     file.close()
 
 def issled_multiple_one_dot():
+    counter = 0
     with concurrent.futures.ProcessPoolExecutor() as executor:
         futures = []
-        for i in range(1, 101):
-            futures.append(executor.submit(issled_one_dot, omega_b=1, omega_o=i, minutes=1, k=0, h1=math.pi / 10, h2=math.pi / 10))
+        for i in range(1, 12):
+            for j in range(1, 12):
+                if i == j and i != 1:
+                    continue
+                futures.append(executor.submit(issled_one_dot, omega_b=i, omega_o=j, minutes=1, k=0, nx=100, ny=100))
 
         for future in concurrent.futures.as_completed(futures):
-            print("ended")
+            counter += 1
+            print(counter)
 
-    # issled_one_dot(omega_b=1, omega_o=7, minutes=1, k=0)
-    # issled_one_dot(omega_b=1, omega_o=2, minutes=1, k=0)
-    # issled_one_dot(omega_b=1, omega_o=2, minutes=1, k=0)
-    # issled_one_dot(omega_b=1, omega_o=2, minutes=1, k=0)
-    # issled_one_dot(omega_b=1, omega_o=2, minutes=1, k=0)
-    # issled_one_dot(omega_b=1, omega_o=2, minutes=1, k=0)
-    # issled_one_dot(omega_b=1, omega_o=2, minutes=1, k=0)
+    print(counter)
 
-def issled_time(omega_b=1, omega_o=2, minutes=1, ksi=0, k=0, h1=0.01, h2=0.01, time_step=0.15, thread_count=16):
+def issled_time(omega_b=1, omega_o=2, minutes=1, ksi=0, k=0, hx=0.01, hy=0.01, time_step=0.15, thread_count=16):
     start = time.time()
-    res = one_dot(omega_b=omega_b, omega_o=omega_o, minutes=minutes, ksi=ksi, k=k, h1=h1, h2=h2, time_step=time_step, thread_count=thread_count)
+    res = one_dot(omega_b=omega_b, omega_o=omega_o, minutes=minutes, ksi=ksi, k=k, h1=hx, h2=hy, time_step=time_step, thread_count=thread_count)
     end = time.time()
     print(end - start)
-    return [omega_b, omega_o, minutes, ksi, k, h1, h2, time_step, thread_count, end - start, res]
+    return [omega_b, omega_o, minutes, ksi, k, hx, hy, time_step, thread_count, end - start, res]
+
+
+def issled_time_hx_hy():
+    file = open('table_time.csv', 'a')
+    writer = csv.writer(file)
+    ress = [["omega_b", "omega_o", "minutes", "ksi", "k", "h1", "h2", "time_step", "thread_count", "time", "res"]]
+    res = issled_time(omega_b=1, omega_o=2, minutes=1, ksi=0, k=0, hx=1000, hy=1000, time_step=0.01, thread_count=16)
+    ress.append(res)
+    res = issled_time(omega_b=1, omega_o=2, minutes=1, ksi=0, k=0, hx=1000, hy=1000, time_step=0.05, thread_count=16)
+    ress.append(res)
+    res = issled_time(omega_b=1, omega_o=2, minutes=1, ksi=0, k=0, hx=1000, hy=1000, time_step=0.10, thread_count=16)
+    ress.append(res)
+    res = issled_time(omega_b=1, omega_o=2, minutes=1, ksi=0, k=0, hx=1000, hy=1000, time_step=0.15, thread_count=16)
+    ress.append(res)
+    res = issled_time(omega_b=1, omega_o=2, minutes=1, ksi=0, k=0, hx=1000, hy=1000, time_step=0.30, thread_count=16)
+    ress.append(res)
+    res = issled_time(omega_b=1, omega_o=2, minutes=1, ksi=0, k=0, hx=1000, hy=1000, time_step=0.20, thread_count=16)
+    ress.append(res)
+    res = issled_time(omega_b=1, omega_o=2, minutes=1, ksi=0, k=0, hx=1000, hy=1000, time_step=0.50, thread_count=16)
+    ress.append(res)
+    res = issled_time(omega_b=1, omega_o=2, minutes=1, ksi=0, k=0, hx=1000, hy=1000, time_step=0.60, thread_count=16)
+    ress.append(res)
+    res = issled_time(omega_b=1, omega_o=2, minutes=1, ksi=0, k=0, hx=1000, hy=1000, time_step=1, thread_count=16)
+    ress.append(res)
+    res = issled_time(omega_b=1, omega_o=2, minutes=1, ksi=0, k=0, hx=1000, hy=1000, time_step=2, thread_count=16)
+    ress.append(res)
+
+    for elem in ress:
+        writer.writerow(elem)
+    file.close()
 
 def issled_time_multiple():
-    file = open('table_time .csv', 'a')
+    file = open('table_time.csv', 'a')
 
     writer = csv.writer(file)
     ress = [["omega_b", "omega_o", "minutes", "ksi", "k", "h1", "h2", "time_step", "thread_count", "time", "res"]]
-    res = issled_time(omega_b=1, omega_o=2, minutes=1, ksi=0, k=0, h1=0.1, h2=0.1, time_step=0.01, thread_count=16)
+    res = issled_time(omega_b=1, omega_o=2, minutes=1, ksi=0, k=0, hx=1000, hy=1000, time_step=0.01, thread_count=16)
     ress.append(res)
-    res = issled_time(omega_b=1, omega_o=2, minutes=1, ksi=0, k=0, h1=0.1, h2=0.1, time_step=0.05, thread_count=16)
+    res = issled_time(omega_b=1, omega_o=2, minutes=1, ksi=0, k=0, hx=1000, hy=1000, time_step=0.05, thread_count=16)
     ress.append(res)
-    res = issled_time(omega_b=1, omega_o=2, minutes=1, ksi=0, k=0, h1=0.1, h2=0.1, time_step=0.10, thread_count=16)
+    res = issled_time(omega_b=1, omega_o=2, minutes=1, ksi=0, k=0, hx=1000, hy=1000, time_step=0.10, thread_count=16)
     ress.append(res)
-    res = issled_time(omega_b=1, omega_o=2, minutes=1, ksi=0, k=0, h1=0.1, h2=0.1, time_step=0.15, thread_count=16)
+    res = issled_time(omega_b=1, omega_o=2, minutes=1, ksi=0, k=0, hx=1000, hy=1000, time_step=0.15, thread_count=16)
     ress.append(res)
-    res = issled_time(omega_b=1, omega_o=2, minutes=1, ksi=0, k=0, h1=0.1, h2=0.1, time_step=0.30, thread_count=16)
+    res = issled_time(omega_b=1, omega_o=2, minutes=1, ksi=0, k=0, hx=1000, hy=1000, time_step=0.30, thread_count=16)
     ress.append(res)
-    res = issled_time(omega_b=1, omega_o=2, minutes=1, ksi=0, k=0, h1=0.1, h2=0.1, time_step=0.20, thread_count=16)
+    res = issled_time(omega_b=1, omega_o=2, minutes=1, ksi=0, k=0, hx=1000, hy=1000, time_step=0.20, thread_count=16)
     ress.append(res)
-    res = issled_time(omega_b=1, omega_o=2, minutes=1, ksi=0, k=0, h1=0.1, h2=0.1, time_step=0.50, thread_count=16)
+    res = issled_time(omega_b=1, omega_o=2, minutes=1, ksi=0, k=0, hx=1000, hy=1000, time_step=0.50, thread_count=16)
     ress.append(res)
-    res = issled_time(omega_b=1, omega_o=2, minutes=1, ksi=0, k=0, h1=0.1, h2=0.1, time_step=0.60, thread_count=16)
+    res = issled_time(omega_b=1, omega_o=2, minutes=1, ksi=0, k=0, hx=1000, hy=1000, time_step=0.60, thread_count=16)
     ress.append(res)
-    res = issled_time(omega_b=1, omega_o=2, minutes=1, ksi=0, k=0, h1=0.1, h2=0.1, time_step=1, thread_count=16)
+    res = issled_time(omega_b=1, omega_o=2, minutes=1, ksi=0, k=0, hx=1000, hy=1000, time_step=1, thread_count=16)
     ress.append(res)
-    res = issled_time(omega_b=1, omega_o=2, minutes=1, ksi=0, k=0, h1=0.1, h2=0.1, time_step=2, thread_count=16)
+    res = issled_time(omega_b=1, omega_o=2, minutes=1, ksi=0, k=0, hx=1000, hy=1000, time_step=2, thread_count=16)
     ress.append(res)
 
     for elem in ress:
@@ -424,8 +453,34 @@ def issled_time_multiple():
     file.close()
 
 
+def v_p_intrg(x, y):
+    return math.cos(y) * math.sin(y)
+
+def midpoint_double1(f, a, b, c, d, nx, ny):
+    hx = (b - a) / nx
+    hy = (d - c) / ny
+    I = 0
+    for i in range(0, nx):
+        for j in range(0, ny):
+            xi = a + hx / 2 + i * hx
+            yj = c + hy / 2 + j * hy
+            # print(f"fi {math.degrees(xi)}, teta {math.degrees(yj)}")
+            I = I + hx * hy * f(xi, yj)
+            # print(I)
+    print(I)
+
 if __name__ == "__main__":
     logging.basicConfig(stream=sys.stdout, level=logging.INFO)
+    start = time.time()
+    # midpoint_double1(v_p_intrg, 0, math.pi * 2, 0, math.pi / 2, 10000, 10000)
+    end = time.time()
+    print(end - start)
+    start = time.time()
+    res = midpoint_double_multithread(v_p_intrg, 0, math.pi * 2, 1000, 0, math.pi / 2, 100000)
+    print(res)
+    end = time.time()
+    print(end - start)
+
     # # one_dot__with_visualization()
     # start = time.time()
     # one_dot(omega_b=1, omega_o=1, minutes=1, ksi=0, k=0)
@@ -434,9 +489,16 @@ if __name__ == "__main__":
     # # one_dot(omega_b=1, omega_o=2, minutes=1, ksi=0, thread_count=4)
     # # one_dot__with_visualization(omega_b=1, omega_o=2, minutes=1, ksi=0)
     # issled_time_multiple()
-    issled_multiple_one_dot()
+    # issled_multiple_one_dot()
     # start = time.time()
     # one_dot(thread_count=1)
     # end = time.time()
+    # res, _ = double_integr_trap_multithread(
+    #     cond_enabled=False,
+    #     h1=0.0001,
+    #     h2=0.0001,
+    #     k=0,
+    #     thread_count=16,)
+    # print(res)
     # print(end - start)
     # calc_plain_z_axis_multiple_points()

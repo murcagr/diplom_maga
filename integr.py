@@ -257,6 +257,167 @@ def calc_for(
     return summ
 
 
+def midpoint_double1(f, a, b, c, d, nx, ny):
+    hx = (b - a) / nx
+    hy = (d - c) / ny
+    I = 0
+    for i in range(0, nx):
+        for j in range(0, ny):
+            xi = a + hx / 2 + i * hx
+            yj = c + hy / 2 + j * hy
+            # print(f"fi {math.degrees(xi)}, teta {math.degrees(yj)}")
+            I = I + hx * hy * f(xi, yj)
+            # print(I)
+    print(I)
+
+
+
+
+def midpoint_double(
+    func=v_p_intrg,
+    a1=0,
+    b1=math.pi / 2,
+    nx=0.1,
+    a2=0,
+    b2=2 * math.pi,
+    ny=0.1,
+    cond_enabled=False,
+    ksi=0,
+    k=1,
+    thread_count=4,
+    z_lower_border_target=-12.75,
+    z_higher_border_target=12.75,
+    y_left_border_target=-5.75,
+    y_right_border_target=5.75,
+    x_0=0,
+    y_0=0,
+    z_0=0,
+    l=10,
+):
+
+    hx = (b1 - a1) / nx
+    hy = (b2 - a2) / ny
+    I = 0
+    for i in range(0, nx):
+        for j in range(0, ny):
+            xi = a1 + hx / 2 + i * hx
+            yj = a2 + hy / 2 + j * hy
+            # print(f"fi {math.degrees(xi)}, teta {math.degrees(yj)}")
+            I = I + hx * hy * func(xi, yj)
+            # print(I)
+
+    return I
+
+def midpoint_calc_for(
+    func=v_p_intrg,
+    a1=0,
+    b1=math.pi / 2,
+    nx=0.1,
+    a2=0,
+    b2=2 * math.pi,
+    ny=0.1,
+    cond_enabled=False,
+    ksi=0,
+    k=1,
+    z_lower_border_target=-12.75,
+    z_higher_border_target=12.75,
+    y_left_border_target=-5.75,
+    y_right_border_target=5.75,
+    x_0=0,
+    y_0=0,
+    z_0=0,
+    l=10,
+    prev=0,
+    curr=0,
+    hx=0,
+    hy=0,
+):
+    I = 0
+    for i in range(prev, curr):
+        for j in range(0, ny):
+            xi = a1 + hx / 2 + i * hx
+            yj = a2 + hy / 2 + j * hy
+            # print(f"fi {math.degrees(xi)}, teta {math.degrees(yj)}")
+            I = I + hx * hy * func(xi, yj)
+
+    return I
+
+
+def midpoint_double_multithread(
+    func=v_p_intrg,
+    a1=0,
+    b1=math.pi / 2,
+    nx=0.1,
+    a2=0,
+    b2=2 * math.pi,
+    ny=0.1,
+    cond_enabled=False,
+    ksi=0,
+    k=1,
+    thread_count=4,
+    z_lower_border_target=-12.75,
+    z_higher_border_target=12.75,
+    y_left_border_target=-5.75,
+    y_right_border_target=5.75,
+    x_0=0,
+    y_0=0,
+    z_0=0,
+    l=10,
+):
+
+    hx = (b1 - a1) / nx
+    hy = (b2 - a2) / ny
+
+    curr = 0
+    end = nx
+    pack = int(nx / thread_count)
+    if nx % thread_count:
+        pack += 1
+
+    results_array = []
+    with concurrent.futures.ProcessPoolExecutor() as executor:
+        futures = []
+        while curr != end or curr != nx:
+            prev = curr
+            curr += pack
+            if curr > nx:
+                curr = nx
+
+            futures.append(
+                executor.submit(
+                    midpoint_calc_for,
+                    func,
+                    a1,
+                    b1,
+                    nx,
+                    a2,
+                    b2,
+                    ny,
+                    cond_enabled,
+                    ksi,
+                    k,
+                    z_lower_border_target,
+                    z_higher_border_target,
+                    y_left_border_target,
+                    y_right_border_target,
+                    x_0,
+                    y_0,
+                    z_0,
+                    l,
+                    prev,
+                    curr,
+                    hx,
+                    hy,
+                )
+            )
+            logging.debug("started thread")
+
+        for future in concurrent.futures.as_completed(futures):
+            results_array.append(future.result())
+
+    return sum(results_array)
+
+
 def test(x, y):
     return math.exp(math.sin(y) * math.cos(y))
 
