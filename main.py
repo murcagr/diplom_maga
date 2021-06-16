@@ -1,212 +1,19 @@
 import logging
-from os import write
-import scipy.integrate as integrate
-import scipy.constants as constants
 import numpy as np
-from numpy import ones, vstack
-from numpy.linalg import lstsq
 import matplotlib.pyplot as plt
 import math
 import time
 import tkinter as tk
-from shapely.geometry import LineString
 import sys
-import csv
-
-import concurrent.futures
 
 from integr import double_integr_trap, double_integr_trap_multithread, midpoint_double_multithread
+from model import Drum_with_podlozkda, Mishen
 
 # https://www.reddit.com/r/Unity2D/comments/34qm8v/how_to_move_an_object_in_a_circular_pattern/
-A_t = 15
-ro_t = 10
-N_a = constants.N_A
-
-class Magnetron(object):
-    def __init__(self, x_center, y_center, z_center, length, width, R_min, R_max, R_med, mishen, current) -> None:
-        self.center_coord = [x_center, y_center, z_center]
-        self.length = length
-        self.width = width
-        self.R_min = R_min
-        self.R_max = R_max
-        self.R_med = R_med
-        self.current = current
-        self.mishen = mishen
-        self.R_left_center_coord = [x_center, y_center - self.length / 2, z_center]
-        self.R_left_center_coord = [x_center, y_center + self.length / 2, z_center]
-        self.max_angle = 60  # градусы
-
-
-class Mishen(object):
-    def __init__(self, x, z_lower_border_target, z_higher_border_target, y_left_border_target, y_right_border_target):
-        self.z_lower_border_target = z_lower_border_target
-        self.z_higher_border_target = z_higher_border_target
-        self.y_left_border_target = y_left_border_target
-        self.y_right_border_target = y_right_border_target
-        self.x = x
-
-
-class Ustanovka(object):
-    def __init__(self, x_center, y_center, z_center, rad, rpm) -> None:
-        self.center_3d = [x_center, y_center, z_center]
-        self.rad = rad
-        self.rpm = rpm
-        self.rad_per_m = self.rpm * math.pi * 2
-        self.rad_per_s = self.rad_per_m / 60
-
-    def calc_time_in_view(self, gamma_angle_max):
-        return 2 * gamma_angle_max / self.rad_per_s
-
-
-# def calc_f_angle_max(Ustanovka):
-class UstanovkaWithPodlozkda(Ustanovka):
-    def __init__(self, x_center, y_center, z_center, rad, rpm, holders_rad, holders_rpm) -> None:
-        super().__init__(x_center, y_center, z_center, rad, rpm)
-
-        self.holders_rpm = holders_rpm
-        self.rad = rad
-        self.rpm = rpm
-        self.rad_per_m = self.rpm * math.pi * 2
-        self.rad_per_s = self.rad_per_m / 60
-        self.holders_rad = holders_rad
-        self.holders_rad_per_m = self.holders_rpm * math.pi * 2
-        self.holders_rad_per_s = self.holders_rad_per_m / 60
-        self.holders = []
-
-    def make_holders(self, holders_count, points_count):
-        self.holders_count = holders_count
-        shift_rad = 2 * math.pi / self.holders_count
-        cur_angle = 0
-        for i in range(self.holders_count):
-            x = self.rad * math.cos(cur_angle) + self.center_3d[0]
-            y = self.rad * math.sin(cur_angle) + self.center_3d[1]
-            holder = Holder(x, y, 0, cur_angle, self.holders_rad, self.holders_rpm)
-            holder.make_points(points_count)
-            self.holders.append(holder)
-            cur_angle += shift_rad
-
-    def make_custom_holder(self, holder_angle, point_angle):
-        holder_angle = math.radians(holder_angle)
-        point_angle = math.radians(point_angle)
-        x = self.rad * math.cos(holder_angle) + self.center_3d[0]
-        y = self.rad * math.sin(holder_angle) + self.center_3d[1]
-        holder = Holder(x, y, 0, holder_angle, self.holders_rad, self.holders_rpm)
-        holder.make_custom_point(point_angle)
-        self.holders.append(holder)
-
-    def move_dt(self, dt):
-        moved = self.rad_per_s * dt
-        for holder in self.holders:
-            holder.current_angle = holder.current_angle - moved
-            holder.center_3d[0] = math.cos(holder.current_angle) * self.rad
-            holder.center_3d[1] = math.sin(holder.current_angle) * self.rad
-            holder.move_dt(dt)
-
-
-class Holder_point(object):
-    def __init__(self, x, y, z, curr_angle) -> None:
-        self.coord = [x, y, z]
-        self.current_angle = curr_angle
-        self.thin = 0
-
-
-class Holder(object):
-    def __init__(self, x_center, y_center, z_center, curr_angle, rad, rpm) -> None:
-        self.center_3d = [x_center, y_center, z_center]
-        self.rad = rad
-        self.rpm = rpm
-        self.rad_per_m = self.rpm * math.pi * 2
-        self.rad_per_s = self.rad_per_m / 60
-        self.points = []
-        self.current_angle = curr_angle
-
-    def make_points(self, points_count):
-        self.points_count = points_count
-        shift_rad = 2 * math.pi / self.points_count
-        i = 0
-        cur_rad = 0
-        for i in range(self.points_count):
-            x = self.rad * math.cos(cur_rad) + self.center_3d[0]
-            y = self.rad * math.sin(cur_rad) + self.center_3d[1]
-            new_point = Holder_point(x, y, 0, cur_rad)
-            cur_rad += shift_rad
-            self.points.append(new_point)
-
-    def make_custom_point(self, angle):
-        x = self.rad * math.cos(angle) + self.center_3d[0]
-        y = self.rad * math.sin(angle) + self.center_3d[1]
-        new_point = Holder_point(x, y, 0, angle)
-        self.points.append(new_point)
-
-    def move_dt(self, dt):
-        moved = self.rad_per_s * dt
-        for point in self.points:
-            point.current_angle = point.current_angle + moved
-            point.coord[0] = self.center_3d[0] + math.cos(point.current_angle) * self.rad
-            point.coord[1] = self.center_3d[1] + math.sin(point.current_angle) * self.rad
-
-
-def calc_plain_z_axis_multiple_points():
-    mishen = Mishen(30, -25.5 / 2, 25.5 / 2, -11.5 / 2, 11.5 / 2)
-
-    ustanovka = UstanovkaWithPodlozkda(0, 0, 0, 10, 7.5, 1, 7.5)
-    ustanovka.make_holders(6, 50)
-    time_step = 0.4
-
-    # fig = plt.figure()
-    # fig.canvas.mpl_connect('close_event', exit(0))
-
-    for _ in np.arange(0, 20, time_step):
-        x_val = []
-        y_val = []
-        color_val = []
-        for holder in ustanovka.holders:
-            x_val.append(holder.center_3d[0])
-            y_val.append(holder.center_3d[1])
-            color_val.append("blue")
-            for point in holder.points:
-                x_val.append(point.coord[0])
-                y_val.append(point.coord[1])
-
-                v_p, coord_intersections = double_integr_trap(
-                    cond_enabled=True,
-                    x_0=point.coord[0],
-                    y_0=point.coord[1],
-                    z_0=point.coord[2],
-                    y_left_border_target=mishen.y_left_border_target,
-                    y_right_border_target=mishen.y_right_border_target,
-                    z_lower_border_target=mishen.z_lower_border_target,
-                    z_higher_border_target=mishen.z_higher_border_target,
-                    l=mishen.x,
-                    ksi=point.current_angle,
-                )
-                if v_p != 0:
-                    color_val.append("lime")
-                    for coord_intersection in coord_intersections:
-                        x_val.append(coord_intersection[0])
-                        y_val.append(coord_intersection[1])
-                        if coord_intersection[3] == 1:
-                            color_val.append("green")
-                        else:
-                            color_val.append("red")
-                else:
-                    color_val.append("red")
-
-        ustanovka.move_dt(time_step)
-
-        plt.xlim(-abs(ustanovka.rad) - 5, mishen.x + 5)
-        plt.ylim(-15, 15)
-
-        # plt.axline((mishen.x, mishen.y_left_border_target), (mishen.x, mishen.y_right_border_target))
-
-        plt.scatter(x_val, y_val, color=color_val, s=1)
-        plt.draw()
-        plt.pause(0.4)
-        plt.clf()
 
 
 def one_dot__with_visualization(thread_count=4, minutes=1, omega_b=1, omega_o=2, ksi=0):
-    ustanovka = UstanovkaWithPodlozkda(0, 0, 0, 10, omega_b, 1, omega_o)
+    ustanovka = Drum_with_podlozkda(0, 0, 0, 10, omega_b, 1, omega_o)
     ustanovka.make_custom_holder(0, ksi)
     mishen = Mishen(30, -25.5 / 2, 25.5 / 2, -11.5 / 2, 11.5 / 2)
     end_time = minutes * 60
@@ -301,22 +108,26 @@ def one_dot__with_visualization(thread_count=4, minutes=1, omega_b=1, omega_o=2,
 
     print(f'Вычисленная толщина пленки: {thickness}')
 
-def one_dot(thread_count=16, minutes=1, omega_b=1, omega_o=2, ksi=0, k=0, nx=100, ny=100, time_step=0.15):
-    ustanovka = UstanovkaWithPodlozkda(0, 0, 0, 10, omega_b, 1, omega_o)
-    ustanovka.make_custom_holder(0, ksi)
-    mishen = Mishen(30, -25.5 / 2, 25.5 / 2, -11.5 / 2, 11.5 / 2)
-    end_time = minutes * 60
-    v_m = 1
 
-    # file = open(f'res_ob{omega_b}_oo{omega_o}_m{minutes}_k{k}.txt', 'w')
+def one_dot(
+    drum_with_podlozkda=Drum_with_podlozkda(0, 0, 0, 10, 1, 1, 2).make_custom_holder(0, 0),
+    mishen=Mishen(30, -25.5 / 2, 25.5 / 2, -11.5 / 2, 11.5 / 2),
+    thread_count=4,
+    minutes=1,
+    k=0,
+    nx=100,
+    ny=100,
+    time_step=0.15,
+):
+    end_time = minutes * 60
 
     thickness = 0
     time_step = time_step
 
     for ttime in np.arange(0, end_time + time_step, time_step):
-        for holder in ustanovka.holders:
+        for holder in drum_with_podlozkda.holders:
             for point in holder.points:
-                v_p, _ = v_m * midpoint_double_multithread(
+                v_p = midpoint_double_multithread(
                     cond_enabled=True,
                     x_0=point.coord[0],
                     y_0=point.coord[1],
@@ -336,148 +147,34 @@ def one_dot(thread_count=16, minutes=1, omega_b=1, omega_o=2, ksi=0, k=0, nx=100
                 # v_p = v_p * (1 / math.pi)
                 thickness += v_p * time_step
 
-        # print(f't={ttime:.3f} psi={math.degrees(holder.current_angle):.3f} ksi={math.degrees(point.current_angle):.3f} v_p={v_p:.3f}  d= {thickness:.3f}')
+        print(
+            f't={ttime:.3f} psi={math.degrees(holder.current_angle):.3f} ksi={math.degrees(point.current_angle):.3f} v_p={v_p:.3f}  d= {thickness:.3f}'
+        )
         # file.write(f't={ttime:.3f} psi={math.degrees(holder.current_angle):.3f} ksi={math.degrees(point.current_angle):.3f} v_p={v_p:.3f}  d={thickness:.3f}\n')
-        ustanovka.move_dt(time_step)
+        drum_with_podlozkda.move_dt(time_step)
 
     print(f'd: {thickness}')
     # file.close()
     return thickness
 
-def issled_one_dot(omega_b=1, omega_o=2, minutes=1, k=0, nx=100, ny=100):
-
-    file = open(f'table_ob{omega_b}_oo{omega_o}_m{minutes}_k{k}.csv', 'w')
-
-    writer = csv.writer(file)
-    writer.writerow([f"omega_b={omega_b}", f"omega_o={omega_o}", f"minutes={minutes}"])
-    writer.writerow(["angle", "d"])
-    d = one_dot(omega_b=omega_b, omega_o=omega_o, minutes=minutes, ksi=0, k=k, nx=nx, ny=ny)
-    writer.writerow(["0", f"{d}"])
-    d = one_dot(omega_b=omega_b, omega_o=omega_o, minutes=minutes, ksi=45, k=k, nx=nx, ny=ny)
-    writer.writerow(["45", f"{d}"])
-    d = one_dot(omega_b=omega_b, omega_o=omega_o, minutes=minutes, ksi=90, k=k, nx=nx, ny=ny)
-    writer.writerow(["90", f"{d}"])
-    d = one_dot(omega_b=omega_b, omega_o=omega_o, minutes=minutes, ksi=135, k=k, nx=nx, ny=ny)
-    writer.writerow(["135", f"{d}"])
-    d = one_dot(omega_b=omega_b, omega_o=omega_o, minutes=minutes, ksi=180, k=k, nx=nx, ny=ny)
-    writer.writerow(["180", f"{d}"])
-    d = one_dot(omega_b=omega_b, omega_o=omega_o, minutes=minutes, ksi=225, k=k, nx=nx, ny=ny)
-    writer.writerow(["225", f"{d}"])
-    d = one_dot(omega_b=omega_b, omega_o=omega_o, minutes=minutes, ksi=270, k=k, nx=nx, ny=ny)
-    writer.writerow(["270", f"{d}"])
-    d = one_dot(omega_b=omega_b, omega_o=omega_o, minutes=minutes, ksi=315, k=k, nx=nx, ny=ny)
-    writer.writerow(["315", f"{d}"])
-    file.close()
-
-def issled_multiple_one_dot():
-    counter = 0
-    with concurrent.futures.ProcessPoolExecutor() as executor:
-        futures = []
-        for i in range(1, 12):
-            for j in range(1, 12):
-                if i == j and i != 1:
-                    continue
-                futures.append(executor.submit(issled_one_dot, omega_b=i, omega_o=j, minutes=1, k=0, nx=100, ny=100))
-
-        for future in concurrent.futures.as_completed(futures):
-            counter += 1
-            print(counter)
-
-    print(counter)
-
-def issled_time(omega_b=1, omega_o=2, minutes=1, ksi=0, k=0, hx=0.01, hy=0.01, time_step=0.15, thread_count=16):
-    start = time.time()
-    res = one_dot(omega_b=omega_b, omega_o=omega_o, minutes=minutes, ksi=ksi, k=k, h1=hx, h2=hy, time_step=time_step, thread_count=thread_count)
-    end = time.time()
-    print(end - start)
-    return [omega_b, omega_o, minutes, ksi, k, hx, hy, time_step, thread_count, end - start, res]
-
-
-def issled_time_hx_hy():
-    file = open('table_time.csv', 'a')
-    writer = csv.writer(file)
-    ress = [["omega_b", "omega_o", "minutes", "ksi", "k", "h1", "h2", "time_step", "thread_count", "time", "res"]]
-    res = issled_time(omega_b=1, omega_o=2, minutes=1, ksi=0, k=0, hx=1000, hy=1000, time_step=0.01, thread_count=16)
-    ress.append(res)
-    res = issled_time(omega_b=1, omega_o=2, minutes=1, ksi=0, k=0, hx=1000, hy=1000, time_step=0.05, thread_count=16)
-    ress.append(res)
-    res = issled_time(omega_b=1, omega_o=2, minutes=1, ksi=0, k=0, hx=1000, hy=1000, time_step=0.10, thread_count=16)
-    ress.append(res)
-    res = issled_time(omega_b=1, omega_o=2, minutes=1, ksi=0, k=0, hx=1000, hy=1000, time_step=0.15, thread_count=16)
-    ress.append(res)
-    res = issled_time(omega_b=1, omega_o=2, minutes=1, ksi=0, k=0, hx=1000, hy=1000, time_step=0.30, thread_count=16)
-    ress.append(res)
-    res = issled_time(omega_b=1, omega_o=2, minutes=1, ksi=0, k=0, hx=1000, hy=1000, time_step=0.20, thread_count=16)
-    ress.append(res)
-    res = issled_time(omega_b=1, omega_o=2, minutes=1, ksi=0, k=0, hx=1000, hy=1000, time_step=0.50, thread_count=16)
-    ress.append(res)
-    res = issled_time(omega_b=1, omega_o=2, minutes=1, ksi=0, k=0, hx=1000, hy=1000, time_step=0.60, thread_count=16)
-    ress.append(res)
-    res = issled_time(omega_b=1, omega_o=2, minutes=1, ksi=0, k=0, hx=1000, hy=1000, time_step=1, thread_count=16)
-    ress.append(res)
-    res = issled_time(omega_b=1, omega_o=2, minutes=1, ksi=0, k=0, hx=1000, hy=1000, time_step=2, thread_count=16)
-    ress.append(res)
-
-    for elem in ress:
-        writer.writerow(elem)
-    file.close()
-
-def issled_time_multiple():
-    file = open('table_time.csv', 'a')
-
-    writer = csv.writer(file)
-    ress = [["omega_b", "omega_o", "minutes", "ksi", "k", "h1", "h2", "time_step", "thread_count", "time", "res"]]
-    res = issled_time(omega_b=1, omega_o=2, minutes=1, ksi=0, k=0, hx=1000, hy=1000, time_step=0.01, thread_count=16)
-    ress.append(res)
-    res = issled_time(omega_b=1, omega_o=2, minutes=1, ksi=0, k=0, hx=1000, hy=1000, time_step=0.05, thread_count=16)
-    ress.append(res)
-    res = issled_time(omega_b=1, omega_o=2, minutes=1, ksi=0, k=0, hx=1000, hy=1000, time_step=0.10, thread_count=16)
-    ress.append(res)
-    res = issled_time(omega_b=1, omega_o=2, minutes=1, ksi=0, k=0, hx=1000, hy=1000, time_step=0.15, thread_count=16)
-    ress.append(res)
-    res = issled_time(omega_b=1, omega_o=2, minutes=1, ksi=0, k=0, hx=1000, hy=1000, time_step=0.30, thread_count=16)
-    ress.append(res)
-    res = issled_time(omega_b=1, omega_o=2, minutes=1, ksi=0, k=0, hx=1000, hy=1000, time_step=0.20, thread_count=16)
-    ress.append(res)
-    res = issled_time(omega_b=1, omega_o=2, minutes=1, ksi=0, k=0, hx=1000, hy=1000, time_step=0.50, thread_count=16)
-    ress.append(res)
-    res = issled_time(omega_b=1, omega_o=2, minutes=1, ksi=0, k=0, hx=1000, hy=1000, time_step=0.60, thread_count=16)
-    ress.append(res)
-    res = issled_time(omega_b=1, omega_o=2, minutes=1, ksi=0, k=0, hx=1000, hy=1000, time_step=1, thread_count=16)
-    ress.append(res)
-    res = issled_time(omega_b=1, omega_o=2, minutes=1, ksi=0, k=0, hx=1000, hy=1000, time_step=2, thread_count=16)
-    ress.append(res)
-
-    for elem in ress:
-        writer.writerow(elem)
-    file.close()
-
 
 def v_p_intrg(x, y):
     return math.cos(y) * math.sin(y)
 
-def midpoint_double1(f, a, b, c, d, nx, ny):
-    hx = (b - a) / nx
-    hy = (d - c) / ny
-    I = 0
-    for i in range(0, nx):
-        for j in range(0, ny):
-            xi = a + hx / 2 + i * hx
-            yj = c + hy / 2 + j * hy
-            # print(f"fi {math.degrees(xi)}, teta {math.degrees(yj)}")
-            I = I + hx * hy * f(xi, yj)
-            # print(I)
-    print(I)
 
 if __name__ == "__main__":
     logging.basicConfig(stream=sys.stdout, level=logging.INFO)
+    # start = time.time()
+    # # midpoint_double1(v_p_intrg, 0, math.pi * 2, 0, math.pi / 2, 10000, 10000)
+    # end = time.time()
+    # print(end - start)
+    # res = midpoint_double_multithread(v_p_intrg, 0, math.pi * 2, 100, 0, math.pi / 2, 100)
+    # print(res)
     start = time.time()
-    # midpoint_double1(v_p_intrg, 0, math.pi * 2, 0, math.pi / 2, 10000, 10000)
-    end = time.time()
-    print(end - start)
-    start = time.time()
-    res = midpoint_double_multithread(v_p_intrg, 0, math.pi * 2, 1000, 0, math.pi / 2, 100000)
-    print(res)
+    drum_with_podlozkda = Drum_with_podlozkda(0, 0, 0, 10, 1, 1, 2)
+    drum_with_podlozkda.make_custom_holder(0, 0)
+    mishen = Mishen(30, -25.5 / 2, 25.5 / 2, -11.5 / 2, 11.5 / 2)
+    one_dot(drum_with_podlozkda=drum_with_podlozkda, mishen=mishen, nx=100, ny=100)
     end = time.time()
     print(end - start)
 

@@ -1,8 +1,6 @@
 import logging
 import math
-import colorama
 from colorama import Fore, Style
-import threading
 import concurrent.futures
 import time
 
@@ -271,8 +269,6 @@ def midpoint_double1(f, a, b, c, d, nx, ny):
     print(I)
 
 
-
-
 def midpoint_double(
     func=v_p_intrg,
     a1=0,
@@ -299,11 +295,10 @@ def midpoint_double(
     hy = (b2 - a2) / ny
     I = 0
     for i in range(0, nx):
+        x = a1 + hx / 2 + i * hx
         for j in range(0, ny):
-            xi = a1 + hx / 2 + i * hx
-            yj = a2 + hy / 2 + j * hy
-            # print(f"fi {math.degrees(xi)}, teta {math.degrees(yj)}")
-            I = I + hx * hy * func(xi, yj)
+            y = a2 + hy / 2 + j * hy
+            I = I + hx * hy * func(x, y)
             # print(I)
 
     return I
@@ -335,10 +330,42 @@ def midpoint_calc_for(
     I = 0
     for i in range(prev, curr):
         for j in range(0, ny):
-            xi = a1 + hx / 2 + i * hx
-            yj = a2 + hy / 2 + j * hy
-            # print(f"fi {math.degrees(xi)}, teta {math.degrees(yj)}")
-            I = I + hx * hy * func(xi, yj)
+            x = a1 + hx / 2 + i * hx
+            y = a2 + hy / 2 + j * hy
+            if cond_enabled:
+                s_1_podv = math.cos(y)
+                s_2_podv = math.sin(y) * math.sin(x)
+                s_3_podv = math.sin(y) * math.cos(x)
+                logging.debug(f'Координаты вектора сигма в подвижной: {s_1_podv:.5f}, {s_2_podv:.5f}, {s_3_podv:.5f}')
+                s_1_nepodv = math.cos(ksi) * s_1_podv - math.sin(ksi) * s_2_podv
+                s_2_nepodv = math.sin(ksi) * s_1_podv + math.cos(ksi) * s_2_podv
+                s_3_nepodv = s_3_podv
+                logging.debug(
+                    f'Координаты вектора сигма в неподвижной: {s_1_nepodv:.5f}, {s_2_nepodv:.5f}, {s_3_nepodv:.5f}'
+                )
+                if s_1_nepodv <= 0:
+                    logging.debug(f"{Fore.RED}Сигма_1 отрицательная, пропускаем{Style.RESET_ALL}")
+                    continue
+
+                t = (l - x_0) / s_1_nepodv
+
+                y_1 = y_0 + s_2_nepodv * t
+                z_1 = z_0 + s_3_nepodv * t
+                x_1 = l
+                logging.debug(f'Координаты точки пересечения: {x_1:.3f}, {y_1:.3f}, {z_1:.3f}')
+                if not (
+                    (z_lower_border_target <= z_1 <= z_higher_border_target)
+                    and (y_left_border_target <= y_1 <= y_right_border_target)
+                ):
+                    logging.debug(f"{Fore.RED}Луч не пересекает поверхность{Style.RESET_ALL}")
+                    # coord_list.append([x_1, y_1, z_1, 0])
+                    continue
+                logging.debug(f"{Fore.GREEN}Луч пересекает поверхность{Style.RESET_ALL}")
+                # coord_list.append([x_1, y_1, z_1, 1])
+
+                distance = math.sqrt((x_1 - x_0) ** 2 + (y_1 - y_0) ** 2 + (z_1 - z_0) ** 2)
+
+            I = I + hx * hy * func(x, y)
 
     return I
 
@@ -346,11 +373,11 @@ def midpoint_calc_for(
 def midpoint_double_multithread(
     func=v_p_intrg,
     a1=0,
-    b1=math.pi / 2,
-    nx=0.1,
+    b1=math.pi * 2,
+    nx=100,
     a2=0,
-    b2=2 * math.pi,
-    ny=0.1,
+    b2=math.pi / 2,
+    ny=100,
     cond_enabled=False,
     ksi=0,
     k=1,
@@ -386,28 +413,28 @@ def midpoint_double_multithread(
             futures.append(
                 executor.submit(
                     midpoint_calc_for,
-                    func,
-                    a1,
-                    b1,
-                    nx,
-                    a2,
-                    b2,
-                    ny,
-                    cond_enabled,
-                    ksi,
-                    k,
-                    z_lower_border_target,
-                    z_higher_border_target,
-                    y_left_border_target,
-                    y_right_border_target,
-                    x_0,
-                    y_0,
-                    z_0,
-                    l,
-                    prev,
-                    curr,
-                    hx,
-                    hy,
+                    func=v_p_intrg,
+                    a1=a1,
+                    b1=b1,
+                    nx=nx,
+                    a2=a2,
+                    b2=b2,
+                    ny=ny,
+                    cond_enabled=cond_enabled,
+                    ksi=ksi,
+                    k=k,
+                    z_lower_border_target=z_lower_border_target,
+                    z_higher_border_target=z_higher_border_target,
+                    y_left_border_target=y_left_border_target,
+                    y_right_border_target=y_right_border_target,
+                    x_0=x_0,
+                    y_0=y_0,
+                    z_0=z_0,
+                    l=l,
+                    prev=prev,
+                    curr=curr,
+                    hx=hx,
+                    hy=hy,
                 )
             )
             logging.debug("started thread")
