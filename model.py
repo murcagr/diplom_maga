@@ -86,7 +86,6 @@ class Holder(object):
     def make_points(self, points_count):
         self.points_count = points_count
         shift_rad = 2 * math.pi / self.points_count
-        i = 0
         cur_rad = 0
         for i in range(self.points_count):
             x = self.rad * math.cos(cur_rad) + self.center_3d[0]

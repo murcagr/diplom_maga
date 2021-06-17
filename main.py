@@ -3,7 +3,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 import math
 import time
-import tkinter as tk
 import sys
 
 from integr import double_integr_trap, double_integr_trap_multithread, midpoint_double_multithread

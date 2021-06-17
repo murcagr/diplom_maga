@@ -8,7 +8,6 @@ import time
 def v_p_intrg(x, y):
     return math.cos(y) * math.sin(y)
 
-
 def double_integr_trap(
     func=v_p_intrg,
     a1=0,

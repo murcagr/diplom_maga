@@ -173,16 +173,22 @@ def int_func3(x, y):
 def int_func4(x, y):
     return math.cos(y) * math.sin(y)
 
-def issled_integr():
-    # res = midpoint_double_multithread(func=int_func1, a1=0, b1=2, a2=0, b2=1, ny=5, nx=5)
-    # print(res)
-    # accuracy = res / (2 / 3)
-    # print(accuracy)
-    # res = 2 * midpoint_double_multithread(func=int_func3, a1=0, b1=math.pi / 2, a2=0, b2=math.pi / 2, ny=1000, nx=1000)
-    res = midpoint_double_multithread(func=int_func4, a1=0, b1=math.pi * 2, a2=0, b2=math.pi / 2, ny=100000, nx=100000)
-    print(res)
-    # accuracy = res / (2 / 3)
+def issled_integr(func, a1, b1, a2, b2, nx, ny, real_val):
+    start = time.time()
+    res = midpoint_double_multithread(func=int_func4, a1=a1, b1=b1, a2=a2, b2=b2, ny=ny, nx=nx)
+    end = time.time()
 
+    acc = (res - real_val) / real_val
+
+    return [res, acc, end - start, nx, ny]
+
+def issled_integr_diff_nx_ny(func, a1, b1, a2, b2, real_val):
+    points = 2
+    while points <= 2**20:
+        res = issled_integr(func, a1, b1, a2, b2, points, points, real_val)
+        res.append(points * points)
+        points = points * 2
+        print(res)
 
 if __name__ == "__main__":
-    issled_integr()
+    res = issled_integr_diff_nx_ny(int_func3, 0, math.pi / 2, 0, math.pi / 2, math.pi / 4)
