@@ -5,13 +5,13 @@ import math
 import time
 import sys
 
-from integr import double_integr_trap, double_integr_trap_multithread, midpoint_double_multithread
+from integr import double_integr_trap, midpoint_double_multithread, midpoint_double_viz, midpoint_double_viz_multithread
 from model import Drum_with_podlozkda, Mishen
 
 # https://www.reddit.com/r/Unity2D/comments/34qm8v/how_to_move_an_object_in_a_circular_pattern/
 
 
-def one_dot__with_visualization(thread_count=4, minutes=1, omega_b=1, omega_o=2, ksi=0):
+def one_dot__with_visualization(fig, ax1, ax2, exit_flag, thread_count=4, minutes=1, omega_b=1, omega_o=2, ksi=0):
     ustanovka = Drum_with_podlozkda(0, 0, 0, 10, omega_b, 1, omega_o)
     ustanovka.make_custom_holder(0, ksi)
     mishen = Mishen(30, -25.5 / 2, 25.5 / 2, -11.5 / 2, 11.5 / 2)
@@ -21,10 +21,9 @@ def one_dot__with_visualization(thread_count=4, minutes=1, omega_b=1, omega_o=2,
     thickness = 0
 
     time_step = 0.15
-
-    fig, (ax1, ax2) = plt.subplots(2)
-
     for ttime in np.arange(0, end_time + time_step, time_step):
+        if exit_flag.is_set():
+            return
         x_val = []
         y_val = []
         color_val = []
@@ -88,12 +87,14 @@ def one_dot__with_visualization(thread_count=4, minutes=1, omega_b=1, omega_o=2,
         ustanovka.move_dt(time_step)
 
         ax1.set_xlim(-abs(ustanovka.rad) - 5, mishen.x + 5)
-        ax1.set_ylim(-15, 15)
+        y_min = min(mishen.y_left_border_target, -ustanovka.rad)
+        y_max = max(mishen.y_right_border_target, ustanovka.rad)
+        ax1.set_ylim(y_min, y_max)
         ax1.scatter(x_val, y_val, color=color_val)
 
         # для мишени
-        ax2.set_xlim(-20, 20)
-        ax2.set_ylim(-20, 20)
+        ax2.set_xlim(-360, 360)
+        ax2.set_ylim(-360, 360)
         ax2.scatter(y_val2, z_val2, color=color_val2)
 
         # plt.axline((mishen.x, mishen.y_left_border_target), (mishen.x, mishen.y_right_border_target))
@@ -101,15 +102,127 @@ def one_dot__with_visualization(thread_count=4, minutes=1, omega_b=1, omega_o=2,
 
         fig.canvas.draw()
         fig.canvas.flush_events()
-        plt.pause(time_step)
+        # plt.pause(time_step)
         ax1.cla()
         ax2.cla()
 
     print(f'Вычисленная толщина пленки: {thickness}')
 
 
+def one_dot_visualize_midpoint(
+    fig,
+    ax1,
+    ax2,
+    exit_flag,
+    drum_with_podlozkda=Drum_with_podlozkda(0, 0, 0, 10, 1, 1, 2),
+    mishen=Mishen(30, -25.5 / 2, 25.5 / 2, -11.5 / 2, 11.5 / 2),
+    thread_count=4,
+    cond_enabled=True,
+    minutes=1,
+    k=0,
+    nx=100,
+    ny=100,
+    time_step=0.15,
+):
+    end_time = minutes * 60
+
+    thickness = 0
+    time_step = time_step
+
+    thickness = 0
+
+    time_step = 0.15
+    for ttime in np.arange(0, end_time + time_step, time_step):
+        if exit_flag.is_set():
+            return
+        x_val = []
+        y_val = []
+        color_val = []
+        y_val2 = []
+        z_val2 = []
+        color_val2 = []
+        for holder in drum_with_podlozkda.holders:
+            x_val.append(holder.center_3d[0])
+            y_val.append(holder.center_3d[1])
+            color_val.append("blue")
+            for point in holder.points:
+                start = time.time()
+                v_p, coord_intersections = midpoint_double_viz_multithread(
+                    cond_enabled=cond_enabled,
+                    x_0=point.coord[0],
+                    y_0=point.coord[1],
+                    z_0=point.coord[2],
+                    nx=nx,
+                    ny=ny,
+                    k=k,
+                    y_left_border_target=mishen.y_left_border_target,
+                    y_right_border_target=mishen.y_right_border_target,
+                    z_lower_border_target=mishen.z_lower_border_target,
+                    z_higher_border_target=mishen.z_higher_border_target,
+                    l=mishen.x,
+                    ksi=point.current_angle,
+                )
+                end = time.time()
+                print(end - start)
+
+                thickness += v_p * time_step
+
+                green_intersections_xs_top = []
+                green_intersections_ys_top = []
+                red_intersections_xs_top = []
+                red_intersections_ys_top = []
+                for coord_intersection in coord_intersections:
+                    # x_val.append(coord_intersection[0])
+                    # y_val.append(coord_intersection[1])
+                    y_val2.append(coord_intersection[1])
+                    z_val2.append(coord_intersection[2])
+                    if coord_intersection[3] == 1:
+                        green_intersections_xs_top.append(coord_intersection[0])
+                        green_intersections_ys_top.append(coord_intersection[1])
+                        # color_val.append("green")
+                        color_val2.append("green")
+                    else:
+                        red_intersections_xs_top.append(coord_intersection[0])
+                        red_intersections_ys_top.append(coord_intersection[1])
+                        # color_val.append("red")
+                        color_val2.append("red")
+
+                x_val.extend(red_intersections_xs_top)
+                y_val.extend(red_intersections_ys_top)
+                color_val += ["red"] * len(red_intersections_xs_top)
+                x_val.extend(green_intersections_xs_top)
+                y_val.extend(green_intersections_ys_top)
+                color_val += ["green"] * len(green_intersections_xs_top)
+
+                x_val.append(point.coord[0])
+                y_val.append(point.coord[1])
+                color_val.append("lime")
+            print(f't={ttime} psi={math.degrees(point.current_angle):.5f} v_p={v_p:.5f}  d= {thickness:.5f}')
+
+        drum_with_podlozkda.move_dt(time_step)
+
+        ax1.set_xlim(-abs(drum_with_podlozkda.rad) - 5, mishen.x + 5)
+        y_min = min(mishen.y_left_border_target, -drum_with_podlozkda.rad) - 5
+        y_max = max(mishen.y_right_border_target, drum_with_podlozkda.rad) + 5
+        ax1.set_ylim(y_min, y_max)
+        ax1.scatter(x_val, y_val, color=color_val)
+
+        # для мишени
+        ax2.set_xlim(-20, 20)
+        ax2.set_ylim(-20, 20)
+        ax2.scatter(y_val2, z_val2, color=color_val2)
+
+        fig.canvas.draw()
+        fig.canvas.flush_events()
+        ax1.cla()
+        ax2.cla()
+
+    print(f'd: {thickness}')
+    return thickness
+
+
 def one_dot(
-    drum_with_podlozkda=Drum_with_podlozkda(0, 0, 0, 10, 1, 1, 2).make_custom_holder(0, 0),
+    drum_with_podlozkda=Drum_with_podlozkda(0, 0, 0, 10, 1, 1, 2),
     mishen=Mishen(30, -25.5 / 2, 25.5 / 2, -11.5 / 2, 11.5 / 2),
     thread_count=4,
     minutes=1,
@@ -169,13 +282,15 @@ if __name__ == "__main__":
     # print(end - start)
     # res = midpoint_double_multithread(v_p_intrg, 0, math.pi * 2, 100, 0, math.pi / 2, 100)
     # print(res)
-    start = time.time()
+    # start = time.time()
     drum_with_podlozkda = Drum_with_podlozkda(0, 0, 0, 10, 1, 1, 2)
     drum_with_podlozkda.make_custom_holder(0, 0)
     mishen = Mishen(30, -25.5 / 2, 25.5 / 2, -11.5 / 2, 11.5 / 2)
-    one_dot(drum_with_podlozkda=drum_with_podlozkda, mishen=mishen, nx=40, ny=40)
-    end = time.time()
-    print(end - start)
+    # one_dot(drum_with_podlozkda=drum_with_podlozkda, mishen=mishen, nx=40, ny=40)
+    # end = time.time()
+    # print(end - start)
+
+    # one_dot__with_visualization()
 
     # # one_dot__with_visualization()
     # start = time.time()
