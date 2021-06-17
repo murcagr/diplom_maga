@@ -413,7 +413,7 @@ def midpoint_double_multithread(
             futures.append(
                 executor.submit(
                     midpoint_calc_for,
-                    func=v_p_intrg,
+                    func=func,
                     a1=a1,
                     b1=b1,
                     nx=nx,

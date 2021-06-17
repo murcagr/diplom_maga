@@ -1,9 +1,11 @@
 import csv
+import math
 import time
 import concurrent.futures
 
 from main import one_dot
 from model import Drum_with_podlozkda, Mishen
+from integr import midpoint_double_multithread, midpoint_double1
 
 
 def issled_one_dot_ksi(drum_with_podlozkda: Drum_with_podlozkda, mishen, ksi, minutes=1, k=0, nx=100, ny=100, time_step=0.15, thread_count=16):
@@ -157,5 +159,30 @@ def issled_time_multiple():
         writer.writerow(elem)
     file.close()
 
+# 2/3
+def int_func1(x, y):
+    return x * y**2
 
-if __name__ == "___main__":
+def int_func2(x, y):
+    return math.cos(y) * x**2 + 1
+
+def int_func3(x, y):
+    return math.cos(x + y)
+
+
+def int_func4(x, y):
+    return math.cos(y) * math.sin(y)
+
+def issled_integr():
+    # res = midpoint_double_multithread(func=int_func1, a1=0, b1=2, a2=0, b2=1, ny=5, nx=5)
+    # print(res)
+    # accuracy = res / (2 / 3)
+    # print(accuracy)
+    # res = 2 * midpoint_double_multithread(func=int_func3, a1=0, b1=math.pi / 2, a2=0, b2=math.pi / 2, ny=1000, nx=1000)
+    res = midpoint_double_multithread(func=int_func4, a1=0, b1=math.pi * 2, a2=0, b2=math.pi / 2, ny=100000, nx=100000)
+    print(res)
+    # accuracy = res / (2 / 3)
+
+
+if __name__ == "__main__":
+    issled_integr()
