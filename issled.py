@@ -191,4 +191,8 @@ def issled_integr_diff_nx_ny(func, a1, b1, a2, b2, real_val):
         print(res)
 
 if __name__ == "__main__":
-    res = issled_integr_diff_nx_ny(int_func3, 0, math.pi / 2, 0, math.pi / 2, math.pi / 4)
+    # res = issled_integr_diff_nx_ny(int_func3, 0, math.pi / 2, 0, math.pi / 2, math.pi / 4)
+    drum_with_podlozkda = Drum_with_podlozkda(rad=10, rpm=1, holders_rad=1, holders_rpm=2)
+    drum_with_podlozkda.make_custom_holder(holder_angle=0, point_angle=0)
+    mishen = Mishen(30, -25.5 / 2, 25.5 / 2, -11.5 / 2, 11.5 / 2)
+    issled_one_dot_ksi(drum_with_podlozkda, mishen, ksi=0, minutes=1, k=0, nx=2048, ny=2048, time_step=0.15, thread_count=16)

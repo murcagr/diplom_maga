@@ -97,7 +97,7 @@ def double_integr_trap_multithread(
     h2=0.1,
     cond_enabled=False,
     ksi=0,
-    k=1,
+    k=0,
     thread_count=4,
     z_lower_border_target=-12.75,
     z_higher_border_target=12.75,
@@ -178,7 +178,7 @@ def calc_for(
     h2=0.1,
     cond_enabled=False,
     ksi=0,
-    k=1,
+    k=0,
     z_lower_border_target=-12.75,
     z_higher_border_target=12.75,
     y_left_border_target=-5.75,
@@ -278,7 +278,7 @@ def midpoint_double(
     ny=0.1,
     cond_enabled=False,
     ksi=0,
-    k=1,
+    k=0,
     thread_count=4,
     z_lower_border_target=-12.75,
     z_higher_border_target=12.75,
@@ -312,7 +312,7 @@ def midpoint_calc_for(
     ny=0.1,
     cond_enabled=False,
     ksi=0,
-    k=1,
+    k=0,
     z_lower_border_target=-12.75,
     z_higher_border_target=12.75,
     y_left_border_target=-5.75,
@@ -364,7 +364,7 @@ def midpoint_calc_for(
 
                 distance = math.sqrt((x_1 - x_0) ** 2 + (y_1 - y_0) ** 2 + (z_1 - z_0) ** 2)
 
-            I = I + hx * hy * func(x, y)
+            I = I + hx * hy * func(x, y) * math.exp(-k * distance)
 
     return I
 
@@ -379,7 +379,7 @@ def midpoint_double_multithread(
     ny=100,
     cond_enabled=False,
     ksi=0,
-    k=1,
+    k=0,
     thread_count=4,
     z_lower_border_target=-12.75,
     z_higher_border_target=12.75,
