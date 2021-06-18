@@ -144,6 +144,13 @@ def one_dot_visualize_midpoint(
         for holder in drum_with_podlozkda.holders:
             x_val.append(holder.center_3d[0])
             y_val.append(holder.center_3d[1])
+            holder_draw = plt.Circle(
+                (holder.center_3d[0], holder.center_3d[1]),
+                holder.rad,
+                color='grey',
+                fill=False,
+            )
+            ax1.add_patch(holder_draw)
             color_val.append("blue")
             for point in holder.points:
                 start = time.time()
@@ -199,23 +206,39 @@ def one_dot_visualize_midpoint(
                 color_val.append("lime")
             print(f't={ttime} psi={math.degrees(point.current_angle):.5f} v_p={v_p:.5f}  d= {thickness:.5f}')
 
-        drum_with_podlozkda.move_dt(time_step)
-
         ax1.set_xlim(-abs(drum_with_podlozkda.rad) - 5, mishen.x + 5)
+        ax1.set_aspect('equal', adjustable='box', anchor='C')
         y_min = min(mishen.y_left_border_target, -drum_with_podlozkda.rad) - 5
         y_max = max(mishen.y_right_border_target, drum_with_podlozkda.rad) + 5
         ax1.set_ylim(y_min, y_max)
         ax1.scatter(x_val, y_val, color=color_val)
 
+        margins = {"left": 0.040, "bottom": 0.060, "right": 0.990, "top": 0.990}
+
+        fig.subplots_adjust(**margins)
         # для мишени
+        # ax1.anchor()
         ax2.set_xlim(-20, 20)
         ax2.set_ylim(-20, 20)
+        ax2.set_aspect('equal', adjustable='box', anchor='C')
         ax2.scatter(y_val2, z_val2, color=color_val2)
+
+        # рисуем барабан
+        drum = plt.Circle(
+            (drum_with_podlozkda.center_3d[0], drum_with_podlozkda.center_3d[1]),
+            drum_with_podlozkda.rad,
+            color='black',
+            fill=False,
+        )
+        ax1.add_patch(drum)
+        # рисуем образцы
 
         fig.canvas.draw()
         fig.canvas.flush_events()
         ax1.cla()
         ax2.cla()
+
+        drum_with_podlozkda.move_dt(time_step)
 
     print(f'd: {thickness}')
     return thickness

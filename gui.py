@@ -34,7 +34,7 @@ def enable_buttons_for_frames(frames):
 
 def start(
     fig, ax1, ax2, rad_b, rpm_b, psi, rad_o, rpm_o, ksi, m_width, m_height, m_distance, k, nx, ny, time_step, time
-):
+)
     # print(fig, ax1, ax2, rad_b, rpm_b, psi, rad_o, rpm_o, ksi, m_width, m_height, m_distance, k, nx, ny, time_step, time)
     exit_flag.clear()
     # exit()
@@ -42,9 +42,8 @@ def start(
     mishen = Mishen(m_distance, -m_height / 2, m_height / 2, -m_width / 2, m_width / 2)
     drum.make_custom_holder(holder_angle=psi, point_angle=ksi)
     one_dot_visualize_midpoint(
-        fig, ax1, ax2, exit_flag, nx=nx, ny=ny, cond_enabled=False, drum_with_podlozkda=drum, mishen=mishen, k=k, time_step=time_step,
+        fig, ax1, ax2, exit_flag, nx=nx, ny=ny, cond_enabled=True, drum_with_podlozkda=drum, mishen=mishen, k=k, time_step=time_step,
     )
-
 
 def stop():
     exit_flag.set()
@@ -60,6 +59,7 @@ if __name__ == "__main__":
 
     # Initialize matplotlib figure for graphing purposes
     fig, (ax1, ax2) = plt.subplots(2)
+    ax1.set_title("")
 
     # Special type of "canvas" to allow for matplotlib graphing
     canvas = FigureCanvasTkAgg(fig, master=root)
