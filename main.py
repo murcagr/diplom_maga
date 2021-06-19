@@ -118,20 +118,18 @@ def one_dot_visualize_midpoint(
     mishen=Mishen(30, -25.5 / 2, 25.5 / 2, -11.5 / 2, 11.5 / 2),
     thread_count=4,
     cond_enabled=True,
-    minutes=1,
+    seconds=60,
     k=0,
     nx=100,
     ny=100,
     time_step=0.15,
 ):
-    end_time = minutes * 60
+    end_time = seconds
 
     thickness = 0
     time_step = time_step
 
     thickness = 0
-
-    time_step = 0.15
     for ttime in np.arange(0, end_time + time_step, time_step):
         if exit_flag.is_set():
             return
@@ -173,7 +171,7 @@ def one_dot_visualize_midpoint(
                 print(end - start)
 
                 thickness += v_p * time_step
-
+                # green_counter = 0
                 green_intersections_xs_top = []
                 green_intersections_ys_top = []
                 red_intersections_xs_top = []
@@ -188,22 +186,25 @@ def one_dot_visualize_midpoint(
                         green_intersections_ys_top.append(coord_intersection[1])
                         # color_val.append("green")
                         color_val2.append("green")
+                        # green_counter = green_counter + 1
                     else:
                         red_intersections_xs_top.append(coord_intersection[0])
                         red_intersections_ys_top.append(coord_intersection[1])
                         # color_val.append("red")
                         color_val2.append("red")
-
+                # print(green_counter)
                 x_val.extend(red_intersections_xs_top)
                 y_val.extend(red_intersections_ys_top)
                 color_val += ["red"] * len(red_intersections_xs_top)
                 x_val.extend(green_intersections_xs_top)
                 y_val.extend(green_intersections_ys_top)
                 color_val += ["green"] * len(green_intersections_xs_top)
-
                 x_val.append(point.coord[0])
                 y_val.append(point.coord[1])
-                color_val.append("lime")
+                if v_p > 0:
+                    color_val.append("lime")
+                else:
+                    color_val.append("red")
             print(f't={ttime} psi={math.degrees(point.current_angle):.5f} v_p={v_p:.5f}  d= {thickness:.5f}')
 
         ax1.set_xlim(-abs(drum_with_podlozkda.rad) - 5, mishen.x + 5)
@@ -213,7 +214,7 @@ def one_dot_visualize_midpoint(
         ax1.set_ylim(y_min, y_max)
         ax1.scatter(x_val, y_val, color=color_val)
 
-        margins = {"left": 0.040, "bottom": 0.060, "right": 0.990, "top": 0.990}
+        margins = {"left": 0.040, "bottom": 0.060, "right": 0.990, "top": 0.90}
 
         fig.subplots_adjust(**margins)
         # для мишени
@@ -222,6 +223,8 @@ def one_dot_visualize_midpoint(
         ax2.set_ylim(-20, 20)
         ax2.set_aspect('equal', adjustable='box', anchor='C')
         ax2.scatter(y_val2, z_val2, color=color_val2)
+        ax1.text(0.1, 0.9, thickness, ha='center', va='center', transform=ax1.transAxes)
+        ax2.text(0.1, 0.9, ttime, ha='center', va='center', transform=ax2.transAxes)
 
         # рисуем барабан
         drum = plt.Circle(
@@ -231,12 +234,13 @@ def one_dot_visualize_midpoint(
             fill=False,
         )
         ax1.add_patch(drum)
-        # рисуем образцы
 
         fig.canvas.draw()
         fig.canvas.flush_events()
         ax1.cla()
         ax2.cla()
+        ax1.title.set_text("Вид сверху")
+        ax2.title.set_text("Вид на плоскость мишени")
 
         drum_with_podlozkda.move_dt(time_step)
 
@@ -248,13 +252,13 @@ def one_dot(
     drum_with_podlozkda=Drum_with_podlozkda(0, 0, 0, 10, 1, 1, 2),
     mishen=Mishen(30, -25.5 / 2, 25.5 / 2, -11.5 / 2, 11.5 / 2),
     thread_count=4,
-    minutes=1,
+    seconds=60,
     k=0,
     nx=100,
     ny=100,
     time_step=0.15,
 ):
-    end_time = minutes * 60
+    end_time = seconds
 
     thickness = 0
     time_step = time_step
@@ -309,7 +313,7 @@ if __name__ == "__main__":
     drum_with_podlozkda = Drum_with_podlozkda(0, 0, 0, 10, 1, 1, 2)
     drum_with_podlozkda.make_custom_holder(0, 0)
     mishen = Mishen(30, -25.5 / 2, 25.5 / 2, -11.5 / 2, 11.5 / 2)
-    # one_dot(drum_with_podlozkda=drum_with_podlozkda, mishen=mishen, nx=40, ny=40)
+    one_dot(drum_with_podlozkda=drum_with_podlozkda, mishen=mishen, nx=100, ny=100)
     # end = time.time()
     # print(end - start)
 

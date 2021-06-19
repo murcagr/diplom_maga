@@ -466,7 +466,7 @@ def midpoint_calc_for_multithread(
 
                 distance = math.sqrt((x_1 - x_0) ** 2 + (y_1 - y_0) ** 2 + (z_1 - z_0) ** 2)
 
-            I = I + hx * hy * func(x, y) # * math.exp(-k * distance)
+            I = I + hx * hy * func(x, y) * math.exp(-k * distance)
 
     return [I, coord_list]
 

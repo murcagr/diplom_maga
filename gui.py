@@ -33,19 +33,20 @@ def enable_buttons_for_frames(frames):
 
 
 def start(
-    fig, ax1, ax2, rad_b, rpm_b, psi, rad_o, rpm_o, ksi, m_width, m_height, m_distance, k, nx, ny, time_step, time
-)
-    # print(fig, ax1, ax2, rad_b, rpm_b, psi, rad_o, rpm_o, ksi, m_width, m_height, m_distance, k, nx, ny, time_step, time)
+    fig, ax1, ax2, rad_b, rpm_b, psi, rad_o, rpm_o, ksi, m_width, m_height, m_distance, k, nx, ny, time_step, time, frames
+):
     exit_flag.clear()
-    # exit()
+    print(time_step)
+    disable_buttons_for_frames(frames)
     drum = Drum_with_podlozkda(rad=rad_b, rpm=rpm_b, holders_rad=rad_o, holders_rpm=rpm_o)
     mishen = Mishen(m_distance, -m_height / 2, m_height / 2, -m_width / 2, m_width / 2)
     drum.make_custom_holder(holder_angle=psi, point_angle=ksi)
     one_dot_visualize_midpoint(
-        fig, ax1, ax2, exit_flag, nx=nx, ny=ny, cond_enabled=True, drum_with_podlozkda=drum, mishen=mishen, k=k, time_step=time_step,
+        fig, ax1, ax2, exit_flag, nx=nx, ny=ny, cond_enabled=True, drum_with_podlozkda=drum, mishen=mishen, k=k, time_step=time_step, seconds=time
     )
 
-def stop():
+def stop(frames):
+    enable_buttons_for_frames(frames)
     exit_flag.set()
 
 
@@ -55,22 +56,27 @@ if __name__ == "__main__":
 
     # Initialize an instance of Tk
     root = tk.Tk()
-    graphFrame = tk.Frame(root, bg="blue")
 
     # Initialize matplotlib figure for graphing purposes
-    fig, (ax1, ax2) = plt.subplots(2)
-    ax1.set_title("")
-
+    # fig, (ax1, ax2) = plt.subplots(2)
+    # ax1.set_title("")
+    fig = plt.figure()
+    ax1 = fig.add_subplot(2, 1, 1)
+    ax2 = fig.add_subplot(2, 1, 2)
+    ax1.title.set_text("Вид сверху")
+    ax2.title.set_text("Вид на плоскость мишени c точки")
+    # fig.tight_layout()
     # Special type of "canvas" to allow for matplotlib graphing
     canvas = FigureCanvasTkAgg(fig, master=root)
     plot_widget = canvas.get_tk_widget()
 
     # Add the plot to the tkinter widget
     plot_widget.grid(row=0, column=1, sticky="nsew")
+
     # Create a tkinter button at the bottom of the window and link it with the updateGraph function
     root.title("Моделирование нанесения наноструктур в магнетроннах барабанного вида")
-    root.geometry('{}x{}'.format(460, 710))
-    root.minsize(width=460, height=600)
+    root.geometry('{}x{}'.format(800, 890))
+    root.minsize(width=800, height=710)
     # top_frame = tk.Frame(root, bg='cyan', width=450, height=50, pady=3)
     # center = tk.Frame(root, bg='gray2', width=50, height=40, padx=3, pady=3)
     # btm_frame = tk.Frame(root, bg='white', width=450, height=45, pady=3)
@@ -85,7 +91,6 @@ if __name__ == "__main__":
     root.grid_rowconfigure(1, weight=1)
 
     paramsFrame.grid(row=0, column=0, sticky="nsew")
-    # graphFrame.grid(row=0, column=1, sticky="nsew")
     labelframeBar = tk.LabelFrame(paramsFrame, text="Параметры барабана")
     labelframeObr = tk.LabelFrame(paramsFrame, text="Параметры образца")
     labelframeMish = tk.LabelFrame(paramsFrame, text="Параметры мишени")
@@ -154,8 +159,8 @@ if __name__ == "__main__":
     entryObrRpm.pack(side="top", anchor="nw", expand=True)
 
     labelTextObrPsi = tk.StringVar()
-    labelTextObrPsi.set("Начальный угол образца")
-    labelObrPsi = tk.Label(labelframeObr, textvariable=labelTextObrPsi, height=1)
+    labelTextObrPsi.set("Начальный угол \nрассматриваемой точки")
+    labelObrPsi = tk.Label(labelframeObr, textvariable=labelTextObrPsi, height=2)
     labelObrPsi.pack(side="top", anchor="nw", expand=True)
 
     entryTextObrPsi = tk.DoubleVar()
@@ -236,6 +241,16 @@ if __name__ == "__main__":
     entryMMHY = tk.Entry(labelframeMM, text=entryTextMMHY)
     entryMMHY.pack(side="top", anchor="nw", expand=True)
 
+    labelTextTime = tk.StringVar()
+    labelTextTime.set("Время работы")
+    labelTime = tk.Label(labelframeMM, textvariable=labelTextTime, height=1)
+    labelTime.pack(side="top", anchor="nw", expand=True)
+
+    entryTextTime = tk.IntVar()
+    entryTextTime.set(1)
+    entryTime = tk.Entry(labelframeMM, text=entryTextTime)
+    entryTime.pack(side="top", anchor="nw", expand=True)
+
     tk.Button(
         frameSS,
         text="Старт",
@@ -256,9 +271,10 @@ if __name__ == "__main__":
             entryTextMMHX.get(),
             entryTextMMHY.get(),
             entryTextMMDT.get(),
-            1
+            entryTextTime.get(),
+            framesToDisable
         ),
     ).grid(row=0, column=0)
-    tk.Button(frameSS, text="Стоп", command=lambda: stop()).grid(row=0, column=1)
+    tk.Button(frameSS, text="Стоп", command=lambda: stop(framesToDisable)).grid(row=0, column=1)
 
     root.mainloop()

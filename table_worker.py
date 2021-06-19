@@ -7,26 +7,37 @@ import numpy as np
 from scipy.interpolate import interp1d
 from scipy.interpolate import make_interp_spline
 
-path = "/home/remini/learning/diplom_synced_0_test_all"
+# def find_min_or_max(list, n):
+#     max_i = []
+#     for i in range(len(list)):
+#         curr_max_i = 0
+#         if i not in max_i:
+#             if list[i] > list[curr_max_i]:
+
+
+path = "/home/remini/learning/diplom_diff_rpm"
 res = []
 for filename in os.listdir(path):
     if re.match("table_ob*", filename):
+        filename_s = filename.split("_")
+        # print(filename_s[1][2:])
+        if int(filename_s[1][2:]) > int(filename_s[2][2:]):
+            continue
         with open(os.path.join(path, filename), 'r') as f:
             print(filename)
-            reader = csv.reader(f, delimiter=',', quotechar=',',
-                        quoting=csv.QUOTE_MINIMAL)
+            reader = csv.reader(f, delimiter=',', quotechar=',', quoting=csv.QUOTE_MINIMAL)
             d_arr = []
             sootn = 0
             sootn_math = 0
             for row in reader:
                 print(row)
-                if re.match("omega*",row[0]):
+                if re.match("omega*", row[0]):
                     omega_b = row[0].rsplit("=")[1]
                     omega_o = row[1].rsplit("=")[1]
                     sootn = f"{omega_b}/{omega_o}"
-                    sootn_math = float(omega_b)/float(omega_o)
+                    sootn_math = float(omega_b) / float(omega_o)
                     continue
-                if re.match("angle*",row[0]):
+                if re.match("angle*", row[0]):
                     continue
                 else:
                     d_arr.append(float(row[1]))
@@ -47,7 +58,7 @@ x_tick = np.array([])
 
 for elem in res:
     if Fraction(elem[0]).limit_denominator() not in x_tick:
-        x_tick = np.append(x_tick,Fraction(elem[0]).limit_denominator())
+        x_tick = np.append(x_tick, Fraction(elem[0]).limit_denominator())
         x.append(elem[0])
         y.append(elem[1])
 
@@ -58,17 +69,33 @@ X_Y_Spline = make_interp_spline(x, y)
 
 # Returns evenly spaced numbers
 # over a specified interval.
-X_ = np.linspace(max(x), max(y), len(x)*8)
+X_ = np.linspace(min(x), max(x), len(x) * 6)
 Y_ = X_Y_Spline(X_)
+
+# max and min
+
+print("Maximals")
+maxes_i = sorted(range(len(y)), key=lambda i: y[i])[-10:]
+print(maxes_i)
+for elem in maxes_i:
+    print(x[elem], y[elem])
+
+print("Minimals")
+min_i = sorted(range(len(y)), key=lambda i: y[i])[:10]
+print(min_i)
+for elem in min_i:
+    print(x[elem], y[elem])
+
 
 # plt.plot(np.arange(0, len(xnew), 1), f(xnew))
 # plt.xticks(np.arange(0, len(xnew), step), np.unique(x_tick))
 # plt.plot(np.arange(0, len(np.unique(x_tick)), 1), )
 # plt.xticks(np.arange(0, len(np.unique(x_tick)), 1), np.unique(x_tick))
-plt.plot(X_, Y_)
-plt.scatter(x, y)
-plt.xticks(np.unique(x_tick), np.unique(x_tick), rotation=45)
-plt.xlabel("Отношение скорости барабана к скорости образца")
+plt.plot(X_, Y_, c="black")
+plt.grid(True)
+# plt.scatter(x, y)
+# plt.xticks(np.unique(x_tick), np.unique(x_tick), rotation=45)
+plt.xlabel("Отношение частоты вращения барабана к частоте вращения образца")
 plt.ylabel("Неоднородность по окружности")
 plt.savefig(f'{path}/res.png', dpi=1000)
 plt.show()
