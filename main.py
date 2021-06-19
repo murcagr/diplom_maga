@@ -284,8 +284,6 @@ def one_dot(
                     l=mishen.x,
                     ksi=point.current_angle,
                 )
-                # exit(0)
-                # v_p = v_p * (1 / math.pi)
                 thickness += v_p * time_step
 
         print(

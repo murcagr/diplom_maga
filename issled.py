@@ -47,7 +47,7 @@ def issled_one_dot_ksi(
 
 def issled_neravnomernosti(omega_b=1, omega_o=2, k=0):
     seconds = 60
-    nx = ny = 1000
+    nx = ny = 100
     time_step = 0.1
     drum_with_podlozkda = Drum_with_podlozkda(rad=10, rpm=omega_b, holders_rad=1, holders_rpm=omega_o)
     mishen = Mishen(30, -25.5 / 2, 25.5 / 2, -11.5 / 2, 11.5 / 2)
@@ -201,30 +201,32 @@ def issled_time_hx_hy():
     file.close()
 
 
-def issled_time_multiple():
+def issled_time_method_step():
     file = open('table_time.csv', 'a')
 
     writer = csv.writer(file)
     ress = [["omega_b", "omega_o", "seconds", "ksi", "k", "h1", "h2", "time_step", "thread_count", "time", "res"]]
-    res = issled_time(omega_b=1, omega_o=2, seconds=60, ksi=0, k=0, hx=1000, hy=1000, time_step=0.01, thread_count=16)
+    res = issled_time(omega_b=1, omega_o=2, seconds=60, ksi=0, k=0, hx=2048, hy=2048, time_step=0.01, thread_count=16)
     ress.append(res)
-    res = issled_time(omega_b=1, omega_o=2, seconds=60, ksi=0, k=0, hx=1000, hy=1000, time_step=0.05, thread_count=16)
+    res = issled_time(omega_b=1, omega_o=2, seconds=60, ksi=0, k=0, hx=2048, hy=2048, time_step=0.01, thread_count=16)
     ress.append(res)
-    res = issled_time(omega_b=1, omega_o=2, seconds=60, ksi=0, k=0, hx=1000, hy=1000, time_step=0.10, thread_count=16)
+    res = issled_time(omega_b=1, omega_o=2, seconds=60, ksi=0, k=0, hx=2048, hy=2048, time_step=0.05, thread_count=16)
     ress.append(res)
-    res = issled_time(omega_b=1, omega_o=2, seconds=60, ksi=0, k=0, hx=1000, hy=1000, time_step=0.15, thread_count=16)
+    res = issled_time(omega_b=1, omega_o=2, seconds=60, ksi=0, k=0, hx=2048, hy=2048, time_step=0.10, thread_count=16)
     ress.append(res)
-    res = issled_time(omega_b=1, omega_o=2, seconds=60, ksi=0, k=0, hx=1000, hy=1000, time_step=0.30, thread_count=16)
+    res = issled_time(omega_b=1, omega_o=2, seconds=60, ksi=0, k=0, hx=2048, hy=2048, time_step=0.15, thread_count=16)
     ress.append(res)
-    res = issled_time(omega_b=1, omega_o=2, seconds=60, ksi=0, k=0, hx=1000, hy=1000, time_step=0.20, thread_count=16)
+    res = issled_time(omega_b=1, omega_o=2, seconds=60, ksi=0, k=0, hx=2048, hy=2048, time_step=0.30, thread_count=16)
     ress.append(res)
-    res = issled_time(omega_b=1, omega_o=2, seconds=60, ksi=0, k=0, hx=1000, hy=1000, time_step=0.50, thread_count=16)
+    res = issled_time(omega_b=1, omega_o=2, seconds=60, ksi=0, k=0, hx=2048, hy=2048, time_step=0.20, thread_count=16)
     ress.append(res)
-    res = issled_time(omega_b=1, omega_o=2, seconds=60, ksi=0, k=0, hx=1000, hy=1000, time_step=0.60, thread_count=16)
+    res = issled_time(omega_b=1, omega_o=2, seconds=60, ksi=0, k=0, hx=2048, hy=2048, time_step=0.50, thread_count=16)
     ress.append(res)
-    res = issled_time(omega_b=1, omega_o=2, seconds=60, ksi=0, k=0, hx=1000, hy=1000, time_step=1, thread_count=16)
+    res = issled_time(omega_b=1, omega_o=2, seconds=60, ksi=0, k=0, hx=2048, hy=2048, time_step=0.60, thread_count=16)
     ress.append(res)
-    res = issled_time(omega_b=1, omega_o=2, seconds=60, ksi=0, k=0, hx=1000, hy=1000, time_step=2, thread_count=16)
+    res = issled_time(omega_b=1, omega_o=2, seconds=60, ksi=0, k=0, hx=2048, hy=2048, time_step=1, thread_count=16)
+    ress.append(res)
+    res = issled_time(omega_b=1, omega_o=2, seconds=60, ksi=0, k=0, hx=2048, hy=2048, time_step=2, thread_count=16)
     ress.append(res)
 
     for elem in ress:
