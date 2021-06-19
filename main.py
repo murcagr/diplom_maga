@@ -221,8 +221,9 @@ def one_dot_visualize_midpoint(
         fig.subplots_adjust(**margins)
         # для мишени
         # ax1.anchor()
-        ax2.set_xlim(-20, 20)
-        ax2.set_ylim(-20, 20)
+        mishen_max = max(mishen.z_higher_border_target, mishen.y_right_border_target)
+        ax2.set_xlim(-mishen_max - 5, mishen_max + 5)
+        ax2.set_ylim(-mishen_max - 5, mishen_max + 5)
         ax2.set_aspect('equal', adjustable='box', anchor='C')
         ax2.scatter(y_val2, z_val2, color=color_val2)
 
@@ -312,9 +313,9 @@ if __name__ == "__main__":
     # print(res)
     # start = time.time()
     drum_with_podlozkda = Drum_with_podlozkda(0, 0, 0, 10, 1, 1, 2)
-    drum_with_podlozkda.make_custom_holder(0, 0)
+    drum_with_podlozkda.make_custom_holder(0, 90)
     mishen = Mishen(30, -25.5 / 2, 25.5 / 2, -11.5 / 2, 11.5 / 2)
-    one_dot(drum_with_podlozkda=drum_with_podlozkda, mishen=mishen, nx=100, ny=100, k=1)
+    one_dot(drum_with_podlozkda=drum_with_podlozkda, mishen=mishen, nx=100, ny=100, k=0)
     # end = time.time()
     # print(end - start)
 

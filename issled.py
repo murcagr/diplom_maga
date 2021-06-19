@@ -94,8 +94,11 @@ def issled_neravnomernosti(omega_b=1, omega_o=2, k=0):
 
 def issled_k():
 
-    for e in np.arange(0.05, 1.05, 0.05):
-        k = -math.log(e) / 19
+    for e in np.arange(0, 1.05, 0.05):
+        if e == 0:
+            k = 0
+        else:
+            k = -math.log(e) / 19
         # print(k)
         issled_neravnomernosti(k=k)
 
