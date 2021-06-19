@@ -92,8 +92,11 @@ def issled_neravnomernosti(omega_b=1, omega_o=2, k=0):
 
 
 def issled_k():
-    for k in np.arange(0, 0.05, 0.95):
-        issled_neravnomernosti(k=k)
+
+    for e in np.arange(0.05, 1.05, 0.05):
+        k = math.log(e) / 19
+        # print(e, k)
+        # issled_neravnomernosti(k=k)
 
 
 def issled_one_dot(drum_with_podlozkda, mishen, seconds=60, k=0, nx=100, ny=100):

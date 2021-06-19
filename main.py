@@ -313,7 +313,7 @@ if __name__ == "__main__":
     drum_with_podlozkda = Drum_with_podlozkda(0, 0, 0, 10, 1, 1, 2)
     drum_with_podlozkda.make_custom_holder(0, 0)
     mishen = Mishen(30, -25.5 / 2, 25.5 / 2, -11.5 / 2, 11.5 / 2)
-    one_dot(drum_with_podlozkda=drum_with_podlozkda, mishen=mishen, nx=100, ny=100)
+    one_dot(drum_with_podlozkda=drum_with_podlozkda, mishen=mishen, nx=100, ny=100, k=1)
     # end = time.time()
     # print(end - start)
 
