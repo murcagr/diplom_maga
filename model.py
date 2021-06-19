@@ -65,6 +65,8 @@ class Drum_with_podlozkda(Ustanovka):
             holder.center_3d[1] = math.sin(holder.current_angle) * self.rad
             holder.move_dt(dt)
 
+    def copy(self):
+        return Drum_with_podlozkda(x_center=self.center_3d[0], y_center=self.center_3d[1], z_center=self.center_3d[2], rad=self.rad, rpm=self.rpm, holders_rad=self.holders_rad, holders_rpm=self.holders_rpm)
 
 class Holder_point(object):
     def __init__(self, x, y, z, curr_angle) -> None:

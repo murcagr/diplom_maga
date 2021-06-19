@@ -20,18 +20,19 @@ def issled_one_dot_ksi(
     time_step=0.15,
     thread_count=16,
 ):
-    drum_with_podlozkda.make_custom_holder(holder_angle=0, point_angle=ksi)
+    drum_with_podlozkda_copy = drum_with_podlozkda.copy()
+    drum_with_podlozkda_copy.make_custom_holder(holder_angle=0, point_angle=ksi)
     ress = [["omega_b", "omega_o", "ksi", "seconds", "k", "nx", "ny", "time_step", "thread_count", "time", "d"]]
     start = time.time()
     d = one_dot(
-        drum_with_podlozkda, mishen, seconds=seconds, k=k, nx=nx, ny=ny, time_step=time_step, thread_count=thread_count
+        drum_with_podlozkda_copy, mishen, seconds=seconds, k=k, nx=nx, ny=ny, time_step=time_step, thread_count=thread_count
     )
 
     end = time.time()
     elapsed_time = end - start
     return [
-        drum_with_podlozkda.rpm,
-        drum_with_podlozkda.holders_rpm,
+        drum_with_podlozkda_copy.rpm,
+        drum_with_podlozkda_copy.holders_rpm,
         ksi,
         seconds,
         k,

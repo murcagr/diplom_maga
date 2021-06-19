@@ -33,7 +33,26 @@ def enable_buttons_for_frames(frames):
 
 
 def start(
-    fig, ax1, ax2, rad_b, rpm_b, psi, rad_o, rpm_o, ksi, m_width, m_height, m_distance, k, nx, ny, time_step, time, frames
+    fig,
+    ax1,
+    ax2,
+    rad_b,
+    rpm_b,
+    psi,
+    rad_o,
+    rpm_o,
+    ksi,
+    m_width,
+    m_height,
+    m_distance,
+    k,
+    nx,
+    ny,
+    time_step,
+    time,
+    frames,
+    d_field,
+    ct_field,
 ):
     exit_flag.clear()
     print(time_step)
@@ -42,8 +61,22 @@ def start(
     mishen = Mishen(m_distance, -m_height / 2, m_height / 2, -m_width / 2, m_width / 2)
     drum.make_custom_holder(holder_angle=psi, point_angle=ksi)
     one_dot_visualize_midpoint(
-        fig, ax1, ax2, exit_flag, nx=nx, ny=ny, cond_enabled=True, drum_with_podlozkda=drum, mishen=mishen, k=k, time_step=time_step, seconds=time
+        fig,
+        ax1,
+        ax2,
+        exit_flag,
+        nx=nx,
+        ny=ny,
+        cond_enabled=True,
+        drum_with_podlozkda=drum,
+        mishen=mishen,
+        k=k,
+        time_step=time_step,
+        seconds=time,
+        d_field=d_field,
+        ct_field=ct_field,
     )
+
 
 def stop(frames):
     enable_buttons_for_frames(frames)
@@ -76,21 +109,25 @@ if __name__ == "__main__":
     # Create a tkinter button at the bottom of the window and link it with the updateGraph function
     root.title("Моделирование нанесения наноструктур в магнетроннах барабанного вида")
     root.geometry('{}x{}'.format(800, 890))
-    root.minsize(width=800, height=710)
+    root.minsize(width=800, height=890)
     # top_frame = tk.Frame(root, bg='cyan', width=450, height=50, pady=3)
     # center = tk.Frame(root, bg='gray2', width=50, height=40, padx=3, pady=3)
     # btm_frame = tk.Frame(root, bg='white', width=450, height=45, pady=3)
     # btm_frame2 = tk.Frame(root, bg='lavender', width=450, height=60, pady=3)
 
     paramsFrame = tk.Frame(root, bg="green")
+    outputFrame = tk.Frame(root, bg="red")
     # root.grid_rowconfigure(0, weight=1)
     # root.grid_columnconfigure(1, weight=1)
     root.grid_columnconfigure(0, weight=0)
     root.grid_rowconfigure(0, weight=1)
     root.grid_columnconfigure(1, weight=1)
     root.grid_rowconfigure(1, weight=1)
+    root.grid_columnconfigure(2, weight=0)
+    root.grid_rowconfigure(1, weight=1)
 
     paramsFrame.grid(row=0, column=0, sticky="nsew")
+    outputFrame.grid(row=0, column=2, sticky="nsew")
     labelframeBar = tk.LabelFrame(paramsFrame, text="Параметры барабана")
     labelframeObr = tk.LabelFrame(paramsFrame, text="Параметры образца")
     labelframeMish = tk.LabelFrame(paramsFrame, text="Параметры мишени")
@@ -251,6 +288,27 @@ if __name__ == "__main__":
     entryTime = tk.Entry(labelframeMM, text=entryTextTime)
     entryTime.pack(side="top", anchor="nw", expand=True)
 
+    ## OutputFrame
+    entryLabelD = tk.StringVar()
+    entryLabelD.set("Текущая толщина пленки:")
+    entryLabelDl = tk.Label(outputFrame, textvariable=entryLabelD, height=1)
+    entryLabelDl.pack(side="top", anchor="nw")
+
+    entryTextD = tk.StringVar()
+    entryTextD.set(0)
+    entryTextDl = tk.Label(outputFrame, textvariable=entryTextD, height=1)
+    entryTextDl.pack(side="top", anchor="nw")
+
+    entryLabelTTime = tk.StringVar()
+    entryLabelTTime.set("Текущее время")
+    entryLabelTTimel = tk.Label(outputFrame, textvariable=entryLabelTTime, height=1)
+    entryLabelTTimel.pack(side="top", anchor="nw")
+
+    entryTextTTime = tk.StringVar()
+    entryTextTTime.set(0)
+    entryTextTTimel = tk.Label(outputFrame, textvariable=entryTextTTime, height=1)
+    entryTextTTimel.pack(side="top", anchor="nw")
+
     tk.Button(
         frameSS,
         text="Старт",
@@ -272,7 +330,9 @@ if __name__ == "__main__":
             entryTextMMHY.get(),
             entryTextMMDT.get(),
             entryTextTime.get(),
-            framesToDisable
+            framesToDisable,
+            entryTextD,
+            entryTextTTime,
         ),
     ).grid(row=0, column=0)
     tk.Button(frameSS, text="Стоп", command=lambda: stop(framesToDisable)).grid(row=0, column=1)

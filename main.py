@@ -123,6 +123,8 @@ def one_dot_visualize_midpoint(
     nx=100,
     ny=100,
     time_step=0.15,
+    d_field=None,
+    ct_field=None,
 ):
     end_time = seconds
 
@@ -223,8 +225,6 @@ def one_dot_visualize_midpoint(
         ax2.set_ylim(-20, 20)
         ax2.set_aspect('equal', adjustable='box', anchor='C')
         ax2.scatter(y_val2, z_val2, color=color_val2)
-        ax1.text(0.1, 0.9, thickness, ha='center', va='center', transform=ax1.transAxes)
-        ax2.text(0.1, 0.9, ttime, ha='center', va='center', transform=ax2.transAxes)
 
         # рисуем барабан
         drum = plt.Circle(
@@ -234,11 +234,12 @@ def one_dot_visualize_midpoint(
             fill=False,
         )
         ax1.add_patch(drum)
-
         fig.canvas.draw()
         fig.canvas.flush_events()
         ax1.cla()
         ax2.cla()
+        d_field.set('{:.3f}'.format(thickness))
+        ct_field.set('{:.3f}'.format(ttime))
         ax1.title.set_text("Вид сверху")
         ax2.title.set_text("Вид на плоскость мишени")
 
