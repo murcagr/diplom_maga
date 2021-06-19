@@ -47,36 +47,37 @@ def issled_one_dot_ksi(
 
 def issled_neravnomernosti(omega_b=1, omega_o=2, k=0):
     seconds = 60
-    nx = ny = 100
+    nx = ny = 1000
+    time_step = 0.1
     drum_with_podlozkda = Drum_with_podlozkda(rad=10, rpm=omega_b, holders_rad=1, holders_rpm=omega_o)
     mishen = Mishen(30, -25.5 / 2, 25.5 / 2, -11.5 / 2, 11.5 / 2)
     ress = [["omega_b", "omega_o", "ksi", "seconds", "k", "nx", "ny", "time_step", "thread_count", "time", "d"]]
     res = issled_one_dot_ksi(
-        drum_with_podlozkda, mishen, ksi=0, seconds=seconds, k=k, nx=nx, ny=ny, time_step=0.15, thread_count=16
+        drum_with_podlozkda, mishen, ksi=0, seconds=seconds, k=k, nx=nx, ny=ny, time_step=time_step, thread_count=16
     )
     ress.append(res)
     res = issled_one_dot_ksi(
-        drum_with_podlozkda, mishen, ksi=45, seconds=seconds, k=k, nx=nx, ny=ny, time_step=0.15, thread_count=16
+        drum_with_podlozkda, mishen, ksi=45, seconds=seconds, k=k, nx=nx, ny=ny, time_step=time_step, thread_count=16
     )
     ress.append(res)
     res = issled_one_dot_ksi(
-        drum_with_podlozkda, mishen, ksi=90, seconds=seconds, k=k, nx=nx, ny=ny, time_step=0.15, thread_count=16
+        drum_with_podlozkda, mishen, ksi=90, seconds=seconds, k=k, nx=nx, ny=ny, time_step=time_step, thread_count=16
     )
     ress.append(res)
     res = issled_one_dot_ksi(
-        drum_with_podlozkda, mishen, ksi=135, seconds=seconds, k=k, nx=nx, ny=ny, time_step=0.15, thread_count=16
+        drum_with_podlozkda, mishen, ksi=135, seconds=seconds, k=k, nx=nx, ny=ny, time_step=time_step, thread_count=16
     )
     ress.append(res)
     res = issled_one_dot_ksi(
-        drum_with_podlozkda, mishen, ksi=180, seconds=seconds, k=k, nx=nx, ny=ny, time_step=0.15, thread_count=16
+        drum_with_podlozkda, mishen, ksi=180, seconds=seconds, k=k, nx=nx, ny=ny, time_step=time_step, thread_count=16
     )
     ress.append(res)
     res = issled_one_dot_ksi(
-        drum_with_podlozkda, mishen, ksi=225, seconds=seconds, k=k, nx=nx, ny=ny, time_step=0.15, thread_count=16
+        drum_with_podlozkda, mishen, ksi=225, seconds=seconds, k=k, nx=nx, ny=ny, time_step=time_step, thread_count=16
     )
     ress.append(res)
     res = issled_one_dot_ksi(
-        drum_with_podlozkda, mishen, ksi=270, seconds=seconds, k=k, nx=nx, ny=ny, time_step=0.15, thread_count=16
+        drum_with_podlozkda, mishen, ksi=270, seconds=seconds, k=k, nx=nx, ny=ny, time_step=time_step, thread_count=16
     )
     ress.append(res)
     res = issled_one_dot_ksi(
@@ -278,7 +279,8 @@ if __name__ == "__main__":
     # end = time.time()
     # print(end - tart)
 
-    issled_k()
+    # issled_k()
+    issled_neravnomernosti(omega_b=15, omega_o=23)
     # drum_with_podlozkda = Drum_with_podlozkda(rad=10, rpm=1, holders_rad=1, holders_rpm=2)
     # drum_with_podlozkda.make_custom_holder(holder_angle=0, point_angle=0)
     # mishen = Mishen(30, -25.5 / 2, 25.5 / 2, -11.5 / 2, 11.5 / 2)

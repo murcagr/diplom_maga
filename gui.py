@@ -60,6 +60,8 @@ def start(
     drum = Drum_with_podlozkda(rad=rad_b, rpm=rpm_b, holders_rad=rad_o, holders_rpm=rpm_o)
     mishen = Mishen(m_distance, -m_height / 2, m_height / 2, -m_width / 2, m_width / 2)
     drum.make_custom_holder(holder_angle=psi, point_angle=ksi)
+    d_field.set(0)
+    ct_field.set(0)
     one_dot_visualize_midpoint(
         fig,
         ax1,
@@ -108,15 +110,15 @@ if __name__ == "__main__":
 
     # Create a tkinter button at the bottom of the window and link it with the updateGraph function
     root.title("Моделирование нанесения наноструктур в магнетроннах барабанного вида")
-    root.geometry('{}x{}'.format(800, 890))
-    root.minsize(width=800, height=890)
+    root.geometry('{}x{}'.format(800, 750))
+    root.minsize(width=800, height=790)
     # top_frame = tk.Frame(root, bg='cyan', width=450, height=50, pady=3)
     # center = tk.Frame(root, bg='gray2', width=50, height=40, padx=3, pady=3)
     # btm_frame = tk.Frame(root, bg='white', width=450, height=45, pady=3)
     # btm_frame2 = tk.Frame(root, bg='lavender', width=450, height=60, pady=3)
 
     paramsFrame = tk.Frame(root, bg="green")
-    outputFrame = tk.Frame(root, bg="red")
+    outputFrame = tk.Frame(root)
     # root.grid_rowconfigure(0, weight=1)
     # root.grid_columnconfigure(1, weight=1)
     root.grid_columnconfigure(0, weight=0)
@@ -132,7 +134,7 @@ if __name__ == "__main__":
     labelframeObr = tk.LabelFrame(paramsFrame, text="Параметры образца")
     labelframeMish = tk.LabelFrame(paramsFrame, text="Параметры мишени")
     labelframeSred = tk.LabelFrame(paramsFrame, text="Параметры среды")
-    labelframeMM = tk.LabelFrame(paramsFrame, text="Параметры мат. модели")
+    labelframeMM = tk.LabelFrame(paramsFrame, text="Другое")
     frameSS = tk.Frame(paramsFrame)
 
     labelframeBar.pack(fill=tk.BOTH, expand=True)
@@ -290,7 +292,7 @@ if __name__ == "__main__":
 
     ## OutputFrame
     entryLabelD = tk.StringVar()
-    entryLabelD.set("Текущая толщина пленки:")
+    entryLabelD.set("Текущая толщина пленки: ")
     entryLabelDl = tk.Label(outputFrame, textvariable=entryLabelD, height=1)
     entryLabelDl.pack(side="top", anchor="nw")
 
@@ -300,7 +302,7 @@ if __name__ == "__main__":
     entryTextDl.pack(side="top", anchor="nw")
 
     entryLabelTTime = tk.StringVar()
-    entryLabelTTime.set("Текущее время")
+    entryLabelTTime.set("Текущее время:")
     entryLabelTTimel = tk.Label(outputFrame, textvariable=entryLabelTTime, height=1)
     entryLabelTTimel.pack(side="top", anchor="nw")
 

@@ -21,7 +21,7 @@ for filename in os.listdir(path):
     if re.match("table_ob*", filename):
         filename_s = filename.split("_")
         # print(filename_s[1][2:])
-        if int(filename_s[1][2:]) > int(filename_s[2][2:]):
+        if int(filename_s[1][2:]) < int(filename_s[2][2:]):
             continue
         with open(os.path.join(path, filename), 'r') as f:
             print(filename)
@@ -69,7 +69,7 @@ X_Y_Spline = make_interp_spline(x, y)
 
 # Returns evenly spaced numbers
 # over a specified interval.
-X_ = np.linspace(min(x), max(x), len(x) * 6)
+X_ = np.linspace(min(x), max(x), len(x) * 2)
 Y_ = X_Y_Spline(X_)
 
 # max and min
@@ -78,13 +78,13 @@ print("Maximals")
 maxes_i = sorted(range(len(y)), key=lambda i: y[i])[-10:]
 print(maxes_i)
 for elem in maxes_i:
-    print(x[elem], y[elem])
+    print(x_tick[elem], y[elem])
 
 print("Minimals")
 min_i = sorted(range(len(y)), key=lambda i: y[i])[:10]
 print(min_i)
 for elem in min_i:
-    print(x[elem], y[elem])
+    print(x_tick[elem], y[elem])
 
 
 # plt.plot(np.arange(0, len(xnew), 1), f(xnew))
@@ -97,5 +97,5 @@ plt.grid(True)
 # plt.xticks(np.unique(x_tick), np.unique(x_tick), rotation=45)
 plt.xlabel("Отношение частоты вращения барабана к частоте вращения образца")
 plt.ylabel("Неоднородность по поверхности образца")
-plt.savefig(f'{path}/res.png', dpi=1000)
+plt.savefig(f'{path}/res_diff_rpm_2.png', dpi=1000)
 plt.show()
