@@ -153,15 +153,15 @@ def issled_one_dot_omega():
     print(counter)
 
 
-def issled_time(omega_b=1, omega_o=2, seconds=1, ksi=0, k=0, nx=100, ny=100, time_step=0.15, thread_count=16):
+def issled_time(omega_b=1, omega_o=2, seconds=1, ksi=0, k=0, nx=100, ny=100, time_step=0.15, thread_count=16, cond_enabled=True):
     drum_with_podlozkda = Drum_with_podlozkda(rad=10, rpm=omega_b, holders_rad=1, holders_rpm=omega_o)
     drum_with_podlozkda.make_custom_holder(holder_angle=0, point_angle=0)
     mishen = Mishen(30, -25.5 / 2, 25.5 / 2, -11.5 / 2, 11.5 / 2)
     start = time.time()
-    res = one_dot(drum_with_podlozkda, mishen, seconds=seconds, k=k, nx=nx, ny=ny, time_step=time_step)
+    res = one_dot(drum_with_podlozkda, mishen, seconds=seconds, k=k, nx=nx, ny=ny, time_step=time_step, cond_enabled=cond_enabled)
     end = time.time()
     print(end - start)
-    return [omega_b, omega_o, seconds, ksi, k, nx, nx, time_step, thread_count, end - start, res]
+    return [omega_b, omega_o, seconds, ksi, k, nx, nx, time_step, thread_count, end - start, res, nx * ny]
 
 
 def issled_time_hx_hy():
@@ -194,35 +194,51 @@ def issled_time_hx_hy():
     file.close()
 
 
-def issled_time_method_step():
-    file = open('table_time.csv', 'a')
+def issled_time_method_step(cond_enabled=True, nx=100, ny=100):
 
-    writer = csv.writer(file)
     ress = [["omega_b", "omega_o", "seconds", "ksi", "k", "h1", "h2", "time_step", "thread_count", "time", "res"]]
-    res = issled_time(omega_b=1, omega_o=2, seconds=60, ksi=0, k=0, nx=100, ny=100, time_step=0.01, thread_count=16)
+    res = issled_time(omega_b=1, omega_o=2, seconds=60, ksi=0, k=0, nx=nx, ny=ny, time_step=0.01, thread_count=16, cond_enabled=cond_enabled)
     ress.append(res)
-    res = issled_time(omega_b=1, omega_o=2, seconds=60, ksi=0, k=0, nx=100, ny=100, time_step=0.05, thread_count=16)
+    res = issled_time(omega_b=1, omega_o=2, seconds=60, ksi=0, k=0, nx=nx, ny=ny, time_step=0.05, thread_count=16)
     ress.append(res)
-    res = issled_time(omega_b=1, omega_o=2, seconds=60, ksi=0, k=0, nx=100, ny=100, time_step=0.10, thread_count=16)
+    res = issled_time(omega_b=1, omega_o=2, seconds=60, ksi=0, k=0, nx=nx, ny=ny, time_step=0.10, thread_count=16)
     ress.append(res)
-    res = issled_time(omega_b=1, omega_o=2, seconds=60, ksi=0, k=0, nx=100, ny=100, time_step=0.15, thread_count=16)
+    res = issled_time(omega_b=1, omega_o=2, seconds=60, ksi=0, k=0, nx=nx, ny=ny, time_step=0.15, thread_count=16)
     ress.append(res)
-    res = issled_time(omega_b=1, omega_o=2, seconds=60, ksi=0, k=0, nx=100, ny=100, time_step=0.30, thread_count=16)
+    res = issled_time(omega_b=1, omega_o=2, seconds=60, ksi=0, k=0, nx=nx, ny=ny, time_step=0.30, thread_count=16)
     ress.append(res)
-    res = issled_time(omega_b=1, omega_o=2, seconds=60, ksi=0, k=0, nx=100, ny=100, time_step=0.20, thread_count=16)
+    res = issled_time(omega_b=1, omega_o=2, seconds=60, ksi=0, k=0, nx=nx, ny=ny, time_step=0.20, thread_count=16)
     ress.append(res)
-    res = issled_time(omega_b=1, omega_o=2, seconds=60, ksi=0, k=0, nx=100, ny=100, time_step=0.50, thread_count=16)
+    res = issled_time(omega_b=1, omega_o=2, seconds=60, ksi=0, k=0, nx=nx, ny=ny, time_step=0.50, thread_count=16)
     ress.append(res)
-    res = issled_time(omega_b=1, omega_o=2, seconds=60, ksi=0, k=0, nx=100, ny=100, time_step=0.60, thread_count=16)
+    res = issled_time(omega_b=1, omega_o=2, seconds=60, ksi=0, k=0, nx=nx, ny=ny, time_step=0.60, thread_count=16)
     ress.append(res)
-    res = issled_time(omega_b=1, omega_o=2, seconds=60, ksi=0, k=0, nx=100, ny=100, time_step=1, thread_count=16)
+    res = issled_time(omega_b=1, omega_o=2, seconds=60, ksi=0, k=0, nx=nx, ny=ny, time_step=1, thread_count=16)
     ress.append(res)
-    res = issled_time(omega_b=1, omega_o=2, seconds=60, ksi=0, k=0, nx=100, ny=100, time_step=2, thread_count=16)
+    res = issled_time(omega_b=1, omega_o=2, seconds=60, ksi=0, k=0, nx=nx, ny=ny, time_step=2, thread_count=16)
     ress.append(res)
 
+    file = open(f'table_time_{nx}_{cond_enabled}.csv', 'a')
+    writer = csv.writer(file)
     for elem in ress:
         writer.writerow(elem)
     file.close()
+
+
+def issled_time_method_cond(cond_enabled=True):
+    ress = [["omega_b", "omega_o", "seconds", "ksi", "k", "h1", "h2", "time_step", "thread_count", "time", "res", "points"]]
+    points = 2
+    while points <= 2 ** 10:
+        res = issled_time(omega_b=1, omega_o=2, seconds=60, ksi=0, k=0, nx=points, ny=points, time_step=2, thread_count=16, cond_enabled=cond_enabled)
+        points = points * 2
+        ress.append(res)
+
+    file = open(f'table_time_cond_{cond_enabled}.csv', 'a')
+    writer = csv.writer(file)
+    for elem in ress:
+        writer.writerow(elem)
+    file.close()
+
 
 
 # 2/3
@@ -254,12 +270,11 @@ def issled_integr(func, a1, b1, a2, b2, nx, ny, real_val):
 
 def issled_integr_diff_nx_ny(func, a1, b1, a2, b2, real_val):
     points = 2
-    while points <= 2 ** 20:
+    while points <= 2 ** 8:
         res = issled_integr(func, a1, b1, a2, b2, points, points, real_val)
         res.append(points * points)
         points = points * 2
         print(res)
-
 
 if __name__ == "__main__":
     # res = issled_integr_diff_nx_ny(int_func3, 0, math.pi / 2, 0, math.pi / 2, math.pi / 4)
@@ -273,8 +288,9 @@ if __name__ == "__main__":
     # print(end - tart)
 
     # issled_k()
-    # issled_neravnomernosti(omega_b=15, omega_o=23)
-    issled_time_method_step()
+    # # issled_neravnomernosti(omega_b=15, omega_o=23)
+    issled_time_method_cond(cond_enabled=True)
+    issled_time_method_cond(cond_enabled=False)
     # drum_with_podlozkda = Drum_with_podlozkda(rad=10, rpm=1, holders_rad=1, holders_rpm=2)
     # drum_with_podlozkda.make_custom_holder(holder_angle=0, point_angle=0)
     # mishen = Mishen(30, -25.5 / 2, 25.5 / 2, -11.5 / 2, 11.5 / 2)

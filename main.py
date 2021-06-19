@@ -259,6 +259,7 @@ def one_dot(
     nx=100,
     ny=100,
     time_step=0.15,
+    cond_enabled=True
 ):
     end_time = seconds
 
@@ -268,8 +269,9 @@ def one_dot(
     for ttime in np.arange(0, end_time + time_step, time_step):
         for holder in drum_with_podlozkda.holders:
             for point in holder.points:
+                start = time.time()
                 v_p = midpoint_double_multithread(
-                    cond_enabled=True,
+                    cond_enabled=cond_enabled,
                     x_0=point.coord[0],
                     y_0=point.coord[1],
                     z_0=point.coord[2],
@@ -284,11 +286,12 @@ def one_dot(
                     l=mishen.x,
                     ksi=point.current_angle,
                 )
+                print(time.time() - start)
                 thickness += v_p * time_step
 
-        print(
-            f't={ttime:.3f} psi={math.degrees(holder.current_angle):.3f} ksi={math.degrees(point.current_angle):.3f} v_p={v_p:.3f}  d= {thickness:.3f}'
-        )
+        # print(
+        #     f't={ttime:.3f} psi={math.degrees(holder.current_angle):.3f} ksi={math.degrees(point.current_angle):.3f} v_p={v_p:.3f}  d= {thickness:.3f}'
+        # )
         # file.write(f't={ttime:.3f} psi={math.degrees(holder.current_angle):.3f} ksi={math.degrees(point.current_angle):.3f} v_p={v_p:.3f}  d={thickness:.3f}\n')
         drum_with_podlozkda.move_dt(time_step)
 
@@ -311,9 +314,9 @@ if __name__ == "__main__":
     # print(res)
     # start = time.time()
     drum_with_podlozkda = Drum_with_podlozkda(0, 0, 0, 10, 1, 1, 2)
-    drum_with_podlozkda.make_custom_holder(0, 90)
+    drum_with_podlozkda.make_custom_holder(0, 0)
     mishen = Mishen(30, -25.5 / 2, 25.5 / 2, -11.5 / 2, 11.5 / 2)
-    one_dot(drum_with_podlozkda=drum_with_podlozkda, mishen=mishen, nx=100, ny=100, k=0)
+    one_dot(drum_with_podlozkda=drum_with_podlozkda, mishen=mishen, nx=2048, ny=2048, k=0, cond_enabled=True)
     # end = time.time()
     # print(end - start)
 
