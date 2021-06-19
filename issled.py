@@ -282,7 +282,8 @@ if __name__ == "__main__":
     # print(end - tart)
 
     # issled_k()
-    issled_neravnomernosti(omega_b=15, omega_o=23)
+    # issled_neravnomernosti(omega_b=15, omega_o=23)
+    issled_time_method_step()
     # drum_with_podlozkda = Drum_with_podlozkda(rad=10, rpm=1, holders_rad=1, holders_rpm=2)
     # drum_with_podlozkda.make_custom_holder(holder_angle=0, point_angle=0)
     # mishen = Mishen(30, -25.5 / 2, 25.5 / 2, -11.5 / 2, 11.5 / 2)
