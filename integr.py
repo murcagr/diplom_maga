@@ -462,7 +462,7 @@ def midpoint_calc_for_multithread(
                     coord_list.append([x_1, y_1, z_1, 0])
                     continue
                 logging.debug(f"{Fore.GREEN}Луч пересекает поверхность{Style.RESET_ALL}")
-                # coord_list.append([x_1, y_1, z_1, 1])
+                coord_list.append([x_1, y_1, z_1, 1])
 
                 distance = math.sqrt((x_1 - x_0) ** 2 + (y_1 - y_0) ** 2 + (z_1 - z_0) ** 2)
 

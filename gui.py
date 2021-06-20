@@ -134,7 +134,7 @@ if __name__ == "__main__":
     labelframeObr = tk.LabelFrame(paramsFrame, text="Параметры образца")
     labelframeMish = tk.LabelFrame(paramsFrame, text="Параметры мишени")
     labelframeSred = tk.LabelFrame(paramsFrame, text="Параметры среды")
-    labelframeMM = tk.LabelFrame(paramsFrame, text="Другое")
+    labelframeMM = tk.LabelFrame(paramsFrame, text="Параметры моделирования")
     frameSS = tk.Frame(paramsFrame)
 
     labelframeBar.pack(fill=tk.BOTH, expand=True)

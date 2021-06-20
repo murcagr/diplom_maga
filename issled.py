@@ -11,7 +11,7 @@ from integr import midpoint_double_multithread, midpoint_double1, midpoint_doubl
 
 def issled_one_dot_ksi(
     drum_with_podlozkda: Drum_with_podlozkda,
-    mishen,
+    mishen: Mishen,
     ksi,
     seconds=60,
     k=0,
@@ -22,7 +22,7 @@ def issled_one_dot_ksi(
 ):
     drum_with_podlozkda_copy = drum_with_podlozkda.copy()
     drum_with_podlozkda_copy.make_custom_holder(holder_angle=0, point_angle=ksi)
-    ress = [["omega_b", "omega_o", "ksi", "seconds", "k", "nx", "ny", "time_step", "thread_count", "time", "d"]]
+    ress = [["omega_b", "omega_o", "ksi", "seconds", "k", "nx", "ny", "time_step", "thread_count", "time", "d", "mdist", "mshir", "mvis"]]
     start = time.time()
     d = one_dot(
         drum_with_podlozkda_copy, mishen, seconds=seconds, k=k, nx=nx, ny=ny, time_step=time_step, thread_count=thread_count
@@ -42,15 +42,17 @@ def issled_one_dot_ksi(
         thread_count,
         elapsed_time,
         d,
+        mishen.x,
+        mishen.z_higher_border_target * 2,
+        mishen.y_right_border_target * 2
     ]
 
 
-def issled_neravnomernosti(omega_b=1, omega_o=2, k=0):
+def issled_neravnomernosti(omega_b=1, omega_o=2, k=0, mishen=Mishen(30, -25.5 / 2, 25.5 / 2, -11.5 / 2, 11.5 / 2)):
     seconds = 60
     nx = ny = 100
     time_step = 0.1
     drum_with_podlozkda = Drum_with_podlozkda(rad=10, rpm=omega_b, holders_rad=1, holders_rpm=omega_o)
-    mishen = Mishen(30, -25.5 / 2, 25.5 / 2, -11.5 / 2, 11.5 / 2)
     ress = [["omega_b", "omega_o", "ksi", "seconds", "k", "nx", "ny", "time_step", "thread_count", "time", "d"]]
     res = issled_one_dot_ksi(
         drum_with_podlozkda, mishen, ksi=0, seconds=seconds, k=k, nx=nx, ny=ny, time_step=time_step, thread_count=16
@@ -85,16 +87,27 @@ def issled_neravnomernosti(omega_b=1, omega_o=2, k=0):
     )
 
     file = open(
-        f'table_neravnomernost_ob{drum_with_podlozkda.rpm}_oo{drum_with_podlozkda.holders_rpm}_m{seconds}_k{k}.csv', 'a'
+        f'table_neravnomernost_ob{drum_with_podlozkda.rpm}_oo{drum_with_podlozkda.holders_rpm}_m{seconds}_k{k}_mx{mishen.x}_mvis{mishen.z_higher_border_target * 2}_mshir{mishen.y_right_border_target * 2}.csv', 'a'
     )
     writer = csv.writer(file)
     for elem in ress:
         writer.writerow(elem)
     file.close()
 
+def issled_step_po_rasstoyaniy():
+    for distance in range(12, 14):
+        mishen = Mishen(distance, -25.5 / 2, 25.5 / 2, -11.5 / 2, 11.5 / 2)
+        issled_neravnomernosti(mishen=mishen)
+
+def issled_step_po_size():
+    for visota in np.arange(5, 50, 0.5):
+        for shirina in np.arange(5, 50, 0.5):
+            mishen = Mishen(30, -visota / 2, visota / 2, -shirina / 2, shirina / 2)
+            issled_neravnomernosti(mishen=mishen)
+
+
 
 def issled_k():
-
     for e in np.arange(0, 1.05, 0.05):
         if e == 0:
             k = 0
@@ -288,9 +301,10 @@ if __name__ == "__main__":
     # print(end - tart)
 
     # issled_k()
+    issled_step_po_rasstoyaniy()
     # # issled_neravnomernosti(omega_b=15, omega_o=23)
-    issled_time_method_cond(cond_enabled=True)
-    issled_time_method_cond(cond_enabled=False)
+    # issled_time_method_cond(cond_enabled=True)
+    # issled_time_method_cond(cond_enabled=False)
     # drum_with_podlozkda = Drum_with_podlozkda(rad=10, rpm=1, holders_rad=1, holders_rpm=2)
     # drum_with_podlozkda.make_custom_holder(holder_angle=0, point_angle=0)
     # mishen = Mishen(30, -25.5 / 2, 25.5 / 2, -11.5 / 2, 11.5 / 2)
