@@ -48,11 +48,10 @@ def issled_one_dot_ksi(
     ]
 
 
-def issled_neravnomernosti(omega_b=1, omega_o=2, k=0, mishen=Mishen(30, -25.5 / 2, 25.5 / 2, -11.5 / 2, 11.5 / 2)):
+def issled_neravnomernosti(omega_b=1, omega_o=2, k=0, mishen=Mishen(30, -25.5 / 2, 25.5 / 2, -11.5 / 2, 11.5 / 2), drum_with_podlozkda=Drum_with_podlozkda(rad=10, rpm=1, holders_rad=1, holders_rpm=2)):
     seconds = 60
     nx = ny = 100
-    time_step = 0.1
-    drum_with_podlozkda = Drum_with_podlozkda(rad=10, rpm=omega_b, holders_rad=1, holders_rpm=omega_o)
+    time_step = 0.15
     ress = [["omega_b", "omega_o", "ksi", "seconds", "k", "nx", "ny", "time_step", "thread_count", "time", "d"]]
     res = issled_one_dot_ksi(
         drum_with_podlozkda, mishen, ksi=0, seconds=seconds, k=k, nx=nx, ny=ny, time_step=time_step, thread_count=16
@@ -87,7 +86,7 @@ def issled_neravnomernosti(omega_b=1, omega_o=2, k=0, mishen=Mishen(30, -25.5 / 
     )
 
     file = open(
-        f'table_neravnomernost_ob{drum_with_podlozkda.rpm}_oo{drum_with_podlozkda.holders_rpm}_m{seconds}_k{k}_mx{mishen.x}_mvis{mishen.z_higher_border_target * 2}_mshir{mishen.y_right_border_target * 2}.csv', 'a'
+        f'table_neravnomernost_ob{drum_with_podlozkda.rpm}_oo{drum_with_podlozkda.holders_rpm}_m{seconds}_k{k}_mx{mishen.x}_mvis{mishen.z_higher_border_target * 2}_mshir{mishen.y_right_border_target * 2}_rb{drum_with_podlozkda.rad}_ro{drum_with_podlozkda.holders_rad}.csv', 'a'
     )
     writer = csv.writer(file)
     for elem in ress:
@@ -105,6 +104,12 @@ def issled_step_po_size():
             mishen = Mishen(30, -visota / 2, visota / 2, -shirina / 2, shirina / 2)
             issled_neravnomernosti(mishen=mishen)
 
+
+def issled_step_po_rad():
+    for rad_o in np.arange(1, 50, 2):
+        for rad_b in np.arange(rad_o, 50, 4):
+            drum_with_podlozkda = Drum_with_podlozkda(rad=rad_b, rpm=1, holders_rad=rad_o, holders_rpm=2)
+            issled_neravnomernosti(drum_with_podlozkda=drum_with_podlozkda)
 
 
 def issled_k():
@@ -301,7 +306,8 @@ if __name__ == "__main__":
     # print(end - tart)
 
     # issled_k()
-    issled_step_po_rasstoyaniy()
+    # issled_step_po_rasstoyaniy()
+    issled_step_po_rad()
     # # issled_neravnomernosti(omega_b=15, omega_o=23)
     # issled_time_method_cond(cond_enabled=True)
     # issled_time_method_cond(cond_enabled=False)
