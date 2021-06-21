@@ -140,23 +140,15 @@ def one_dot_visualize_midpoint(
         ttime_start = time.time()
         if exit_flag.is_set():
             return
-        x_holders_val = []
-        y_holders_val = []
-        x_green_intersections = []
-        y_green_intersections = []
-        z_green_intersections = []
-        x_red_intersections = []
-        y_red_intersections = []
-        z_red_intersections = []
-
-        x_dots_val = []
-        y_dots_val = []
-        color_dots_val = []
-
+        x_val = []
+        y_val = []
+        color_val = []
+        y_val2 = []
+        z_val2 = []
+        color_val2 = []
         for holder in drum_with_podlozkda.holders:
-            x_holders_val.append(holder.center_3d[0])
-            y_holders_val.append(holder.center_3d[1])
-
+            x_val.append(holder.center_3d[0])
+            y_val.append(holder.center_3d[1])
             holder_draw = plt.Circle(
                 (holder.center_3d[0], holder.center_3d[1]),
                 holder.rad,
@@ -165,6 +157,7 @@ def one_dot_visualize_midpoint(
             )
 
             ax1.add_patch(holder_draw)
+            color_val.append("blue")
             for point in holder.points:
                 start = time.time()
                 v_p, coord_intersections = midpoint_double_viz_multithread(
@@ -183,30 +176,58 @@ def one_dot_visualize_midpoint(
                     ksi=point.current_angle,
                 )
                 end = time.time()
+                # print(end - start)
 
                 thickness += v_p * time_step
-
+                # green_counter = 0
+                green_intersections_xs_top = []
+                green_intersections_ys_top = []
+                green_intersections_zs_top = []
+                red_intersections_xs_top = []
+                red_intersections_ys_top = []
+                red_intersections_zs_top = []
                 for coord_intersection in coord_intersections:
+                    # x_val.append(coord_intersection[0])
+                    # y_val.append(coord_intersection[1])
+                    # y_val2.append(coord_intersection[1])
+                    # z_val2.append(coord_intersection[2])
                     if coord_intersection[3] == 1:
-                        x_green_intersections.append(coord_intersection[0])
-                        y_green_intersections.append(coord_intersection[1])
-                        z_green_intersections.append(coord_intersection[2])
+                        green_intersections_xs_top.append(coord_intersection[0])
+                        green_intersections_ys_top.append(coord_intersection[1])
+                        green_intersections_zs_top.append(coord_intersection[2])
+                        # color_val2.append("green")
                     else:
                         if (
                             y_min_graph <= coord_intersection[1] <= y_max_graph
                             and -mishen_max_graph - 5 <= coord_intersection[2] <= mishen_max_graph + 5
                         ):
-                            x_red_intersections.append(coord_intersection[0])
-                            y_red_intersections.append(coord_intersection[1])
-                            z_red_intersections.append(coord_intersection[2])
+                            red_intersections_xs_top.append(coord_intersection[0])
+                            red_intersections_ys_top.append(coord_intersection[1])
+                            red_intersections_zs_top.append(coord_intersection[2])
+                        # color_val.append("red")
+                        # color_val2.append("red")
+                # print(green_counter)
+                x_val.extend(red_intersections_xs_top)
+                y_val.extend(red_intersections_ys_top)
+                color_val += ["red"] * len(red_intersections_xs_top)
+                x_val.extend(green_intersections_xs_top)
+                y_val.extend(green_intersections_ys_top)
+                color_val += ["green"] * len(green_intersections_xs_top)
+                x_val.append(point.coord[0])
+                y_val.append(point.coord[1])
 
-                x_dots_val.append(point.coord[0])
-                y_dots_val.append(point.coord[1])
+                y_val2.extend(red_intersections_ys_top)
+                z_val2.extend(red_intersections_zs_top)
+                color_val2 += ["red"] * len(red_intersections_ys_top)
+
+                y_val2.extend(green_intersections_ys_top)
+                z_val2.extend(green_intersections_zs_top)
+                color_val2 += ["green"] * len(green_intersections_ys_top)
+
                 if v_p > 0:
-                    color_dots_val.append("lime")
+                    color_val.append("lime")
                 else:
-                    color_dots_val.append("red")
-
+                    color_val.append("red")
             print(f't={ttime} psi={math.degrees(point.current_angle):.5f} v_p={v_p:.5f}  d= {thickness:.5f}')
 
         ax1.set_aspect('equal', adjustable='box', anchor='C')
@@ -219,16 +240,11 @@ def one_dot_visualize_midpoint(
         margins = {"left": 0.040, "bottom": 0.060, "right": 0.990, "top": 0.90}
 
         fig.subplots_adjust(**margins)
+        # для мишени
+        # ax1.anchor()
 
-        ax1.scatter(x_red_intersections, y_red_intersections, color="red")
-        ax1.scatter(x_green_intersections, y_green_intersections, color="green")
-        ax1.scatter(x_holders_val, y_holders_val, c="blue")
-
-        ax2.scatter(y_red_intersections, z_red_intersections, marker="s", color="red")
-        ax2.scatter(y_green_intersections, z_green_intersections, marker="s", color="green")
-
-        ax1.scatter(x_dots_val, y_dots_val, c=color_dots_val)
-
+        ax1.scatter(x_val, y_val, color=color_val)
+        ax2.scatter(y_val2, z_val2, marker="s", color=color_val2)
 
         # рисуем барабан
         drum = plt.Circle(
