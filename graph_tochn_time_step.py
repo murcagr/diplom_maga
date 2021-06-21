@@ -87,7 +87,7 @@ plt.plot(x2, y2, '--', c="grey", label="Без использования фил
 plt.legend(loc='upper left')
 plt.xscale('log', base=2)
 # plt.xticks(np.unique(x_tick), np.unique(x_tick), rotation=45)
-plt.xlabel("Шаг по времени")
+plt.xlabel("Количество точек")
 plt.ylabel("Время (cек)")
 plt.grid()
 plt.savefig(f'{path}/res_time_step.png', dpi=1000)

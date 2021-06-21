@@ -126,6 +126,10 @@ def one_dot_visualize_midpoint(
     d_field=None,
     ct_field=None,
 ):
+
+    mishen_max_graph = max(mishen.z_higher_border_target, mishen.y_right_border_target) * 1.8
+    y_max_graph = max(mishen.y_right_border_target, drum_with_podlozkda.rad + drum_with_podlozkda.holders_rad) * 1.30
+    y_min_graph = min(mishen.y_left_border_target, -(drum_with_podlozkda.rad + drum_with_podlozkda.holders_rad)) * 1.30
     end_time = seconds
 
     thickness = 0
@@ -133,25 +137,34 @@ def one_dot_visualize_midpoint(
 
     thickness = 0
     for ttime in np.arange(0, end_time + time_step, time_step):
+        ttime_start = time.time()
         if exit_flag.is_set():
             return
-        x_val = []
-        y_val = []
-        color_val = []
-        y_val2 = []
-        z_val2 = []
-        color_val2 = []
+        x_holders_val = []
+        y_holders_val = []
+        x_green_intersections = []
+        y_green_intersections = []
+        z_green_intersections = []
+        x_red_intersections = []
+        y_red_intersections = []
+        z_red_intersections = []
+
+        x_dots_val = []
+        y_dots_val = []
+        color_dots_val = []
+
         for holder in drum_with_podlozkda.holders:
-            x_val.append(holder.center_3d[0])
-            y_val.append(holder.center_3d[1])
+            x_holders_val.append(holder.center_3d[0])
+            y_holders_val.append(holder.center_3d[1])
+
             holder_draw = plt.Circle(
                 (holder.center_3d[0], holder.center_3d[1]),
                 holder.rad,
                 color='grey',
                 fill=False,
             )
+
             ax1.add_patch(holder_draw)
-            color_val.append("blue")
             for point in holder.points:
                 start = time.time()
                 v_p, coord_intersections = midpoint_double_viz_multithread(
@@ -170,62 +183,52 @@ def one_dot_visualize_midpoint(
                     ksi=point.current_angle,
                 )
                 end = time.time()
-                print(end - start)
 
                 thickness += v_p * time_step
-                # green_counter = 0
-                green_intersections_xs_top = []
-                green_intersections_ys_top = []
-                red_intersections_xs_top = []
-                red_intersections_ys_top = []
+
                 for coord_intersection in coord_intersections:
-                    # x_val.append(coord_intersection[0])
-                    # y_val.append(coord_intersection[1])
-                    y_val2.append(coord_intersection[1])
-                    z_val2.append(coord_intersection[2])
                     if coord_intersection[3] == 1:
-                        green_intersections_xs_top.append(coord_intersection[0])
-                        green_intersections_ys_top.append(coord_intersection[1])
-                        # color_val.append("green")
-                        color_val2.append("green")
-                        # green_counter = green_counter + 1
+                        x_green_intersections.append(coord_intersection[0])
+                        y_green_intersections.append(coord_intersection[1])
+                        z_green_intersections.append(coord_intersection[2])
                     else:
-                        red_intersections_xs_top.append(coord_intersection[0])
-                        red_intersections_ys_top.append(coord_intersection[1])
-                        # color_val.append("red")
-                        color_val2.append("red")
-                # print(green_counter)
-                x_val.extend(red_intersections_xs_top)
-                y_val.extend(red_intersections_ys_top)
-                color_val += ["red"] * len(red_intersections_xs_top)
-                x_val.extend(green_intersections_xs_top)
-                y_val.extend(green_intersections_ys_top)
-                color_val += ["green"] * len(green_intersections_xs_top)
-                x_val.append(point.coord[0])
-                y_val.append(point.coord[1])
+                        if (
+                            y_min_graph <= coord_intersection[1] <= y_max_graph
+                            and -mishen_max_graph - 5 <= coord_intersection[2] <= mishen_max_graph + 5
+                        ):
+                            x_red_intersections.append(coord_intersection[0])
+                            y_red_intersections.append(coord_intersection[1])
+                            z_red_intersections.append(coord_intersection[2])
+
+                x_dots_val.append(point.coord[0])
+                y_dots_val.append(point.coord[1])
                 if v_p > 0:
-                    color_val.append("lime")
+                    color_dots_val.append("lime")
                 else:
-                    color_val.append("red")
+                    color_dots_val.append("red")
+
             print(f't={ttime} psi={math.degrees(point.current_angle):.5f} v_p={v_p:.5f}  d= {thickness:.5f}')
 
-        ax1.set_xlim(-abs(drum_with_podlozkda.rad) - 5, mishen.x + 5)
         ax1.set_aspect('equal', adjustable='box', anchor='C')
-        y_min = min(mishen.y_left_border_target, -drum_with_podlozkda.rad) - 5
-        y_max = max(mishen.y_right_border_target, drum_with_podlozkda.rad) + 5
-        ax1.set_ylim(y_min, y_max)
-        ax1.scatter(x_val, y_val, color=color_val)
+        ax1.set_xlim(-abs(drum_with_podlozkda.rad + drum_with_podlozkda.holders_rad) * 1.3, mishen.x * 1.3)
+        ax1.set_ylim(y_min_graph, y_max_graph)
+        ax2.set_xlim(-mishen_max_graph, mishen_max_graph)
+        ax2.set_ylim(-mishen_max_graph, mishen_max_graph)
+        ax2.set_aspect('equal', adjustable='box', anchor='C')
 
         margins = {"left": 0.040, "bottom": 0.060, "right": 0.990, "top": 0.90}
 
         fig.subplots_adjust(**margins)
-        # для мишени
-        # ax1.anchor()
-        mishen_max = max(mishen.z_higher_border_target, mishen.y_right_border_target)
-        ax2.set_xlim(-mishen_max - 5, mishen_max + 5)
-        ax2.set_ylim(-mishen_max - 5, mishen_max + 5)
-        ax2.set_aspect('equal', adjustable='box', anchor='C')
-        ax2.scatter(y_val2, z_val2, color=color_val2)
+
+        ax1.scatter(x_red_intersections, y_red_intersections, color="red")
+        ax1.scatter(x_green_intersections, y_green_intersections, color="green")
+        ax1.scatter(x_holders_val, y_holders_val, c="blue")
+
+        ax2.scatter(y_red_intersections, z_red_intersections, marker="s", color="red")
+        ax2.scatter(y_green_intersections, z_green_intersections, marker="s", color="green")
+
+        ax1.scatter(x_dots_val, y_dots_val, c=color_dots_val)
+
 
         # рисуем барабан
         drum = plt.Circle(
@@ -234,8 +237,10 @@ def one_dot_visualize_midpoint(
             color='black',
             fill=False,
         )
+
         ax1.add_patch(drum)
         fig.canvas.draw()
+        print(time.time() - ttime_start)
         fig.canvas.flush_events()
         ax1.cla()
         ax2.cla()
@@ -259,7 +264,7 @@ def one_dot(
     nx=100,
     ny=100,
     time_step=0.15,
-    cond_enabled=True
+    cond_enabled=True,
 ):
     end_time = seconds
 

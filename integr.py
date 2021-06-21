@@ -426,6 +426,12 @@ def midpoint_calc_for_multithread(
     hx=0,
     hy=0,
 ):
+
+    rad_middle = 2
+    len_middle = 5
+
+
+
     I = 0
     coord_list = []
     distance = 0
@@ -457,6 +463,9 @@ def midpoint_calc_for_multithread(
                 if not (
                     (z_lower_border_target <= z_1 <= z_higher_border_target)
                     and (y_left_border_target <= y_1 <= y_right_border_target)
+                    and (math.sqrt(y_1**2 + (z_1 + len_middle)**2) > rad_middle)
+                    and (math.sqrt(y_1**2 + (z_1 - len_middle)**2) > rad_middle)
+                    and (not(-rad_middle <= y_1 <= rad_middle) or not(-len_middle <= z_1 <= len_middle))
                 ):
                     logging.debug(f"{Fore.RED}Луч не пересекает поверхность{Style.RESET_ALL}")
                     coord_list.append([x_1, y_1, z_1, 0])

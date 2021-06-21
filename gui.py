@@ -6,7 +6,8 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from main import one_dot__with_visualization, one_dot_visualize_midpoint
 from threading import Event
 from model import Drum_with_podlozkda, Mishen
-
+from tkinter import messagebox
+from decimal import Decimal
 
 global exit_flag
 exit_flag = Event()
@@ -54,6 +55,59 @@ def start(
     d_field,
     ct_field,
 ):
+
+    if not (0 < rad_b < 99):
+        messagebox.showerror("Ошибка", "Введено недопустимое значение радиуса барабана. Допустимые значения:0-99")
+        return
+    elif not(0 < rad_o < 99):
+        messagebox.showerror("Ошибка", "Введено недопустимое значение радиуса образца. Допустимые значения:0-99")
+        return
+    elif not(rad_o + rad_b < m_distance):
+        messagebox.showerror("Ошибка", "Введено недопустимое значение радиуса барабана. Радиус образца и радиус барабана в сумме не должны превышать расстояние до мишени")
+        return
+    elif not(rad_o < rad_b):
+        messagebox.showerror("Ошибка", "Введено недопустимое значение. Радиус образца должен быть меньше радиуса барабана")
+        return
+    elif not(0 < m_height <= 100):
+        messagebox.showerror("Ошибка", "Введено недопустимое значение высоты мишени. Допустимые значения: (0,100]")
+        return
+    elif not(0 < m_width <= 100):
+        messagebox.showerror("Ошибка", "Введено недопустимое значение ширины. Допустимые значения: (0,100]")
+        return
+    elif not(0 < m_distance <= 100):
+        messagebox.showerror("Ошибка", "Введено недопустимое значение расстояния от центра барабана до мишени. Допустимые значения:(0,100]")
+        return
+    elif not(-360 <= psi <= 360):
+        messagebox.showerror("Ошибка", "Введено недопустимое значение начального угла образца. Допустимое значение от -360 до 360")
+        return
+    elif not(-360 <= ksi <= 360):
+        messagebox.showerror("Ошибка", "Введено недопустимое значение начального угла рассматриваемой точки. Допустимое значение от -360 до 360")
+        return
+    elif not(0 < nx <= 65536):
+        messagebox.showerror("Ошибка", "Введено недопустимое значение количества узлов интегрирования. Допустимые значения:1-65536")
+        return
+    elif not(0 < ny <= 65536):
+        messagebox.showerror("Ошибка", "Введено недопустимое значение количества узлов интегрирования. Допустимые значения:1-65536")
+        return
+    elif not(0 <= k <= 1):
+        messagebox.showerror("Ошибка", "Введено недопустимое значение степени затенения. Допустимые значения:0-1")
+        return
+    elif not(time_step > 0):
+        messagebox.showerror("Ошибка", "Введено недопустимое значение шага по времени. Допустимые значения: >0")
+        return
+    elif not(time > 0):
+        messagebox.showerror("Ошибка", "Введено недопустимое значение времени моделирования. Допустимые значения: >0")
+        return
+    elif not(Decimal(f'{time}') % Decimal(f'{time_step}') == 0):
+        messagebox.showerror("Ошибка", "Введено недопустимое значение шага по времени. Время работы установки должно быть кратно шагу.")
+        return
+    elif not(0 <= rpm_o <= 100):
+        messagebox.showerror("Ошибка", "Введено недопустимое значение частоты вращения образца. Допустимые значения:0-100")
+        return
+    elif not(0 <= rpm_b <= 100):
+        messagebox.showerror("Ошибка", "Введено недопустимое значение частоты вращения барабана. Допустимые значения:0-100")
+        return
+
     exit_flag.clear()
     print(time_step)
     disable_buttons_for_frames(frames)
