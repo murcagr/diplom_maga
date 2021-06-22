@@ -11,7 +11,7 @@ path = "/home/remini/learning/diplom"
 res = []
 d_arr = []
 for filename in os.listdir(path):
-    if re.match("table_tochn_time_one_thread.csv*", filename):
+    if re.match("table_tochn_time.csv*", filename):
         with open(os.path.join(path, filename), 'r') as f:
             print(filename)
             reader = csv.reader(f, delimiter=',', quotechar=',',
@@ -29,46 +29,44 @@ for filename in os.listdir(path):
                 if re.match("angle*", row[0]):
                     continue
                 else:
-                    d_arr.append([float(row[2]), int(row[5])])
+                    d_arr.append([float(row[1]), float(row[2]), int(row[5])])
 
-d_arr.sort(key=lambda x: x[1])
+d_arr.sort(key=lambda x: x[2])
 print(d_arr)
 
 x = []
 y = []
 x_tick = np.array([])
 
-appended = []
 for elem in d_arr:
-    if elem[1] not in appended:
-        x.append(elem[1])
-        y.append(elem[0])
-        appended.append(elem[1])
+    x.append(elem[2])
+    y.append(elem[0])
 
-# xnew = np.linspace(min(x), max(x), 100)
+
+# xnew = np.linspace(min(x), max(x), 400)
 # bspline = make_interp_spline(x, y)
 # y_smoothed = bspline(xnew)
-# plt.plot(xnew, y_smoothed, c="black")
+# plt.plot(xnew, y_smoothed)
+# f = interp1d(x, y, kind='quadratic')
+# xnew = np.linspace(min(x), max(x), num=len(x)*8, endpoint=True)
+# X_Y_Spline = make_interp_spline(x, y)
 
-X_Y_Spline = make_interp_spline(x, y)
-
-# Returns evenly spaced numbers
-# over a specified interval.
-X_ = np.linspace(min(x), max(x), 80)
-Y_ = X_Y_Spline(X_)
+# # Returns evenly spaced numbers
+# # over a specified interval.
+# X_ = np.linspace(max(x), max(y), len(x) * 8)
+# Y_ = X_Y_Spline(X_)
 
 # # plt.plot(np.arange(0, len(xnew), 1), f(xnew))
 # # plt.xticks(np.arange(0, len(xnew), step), np.unique(x_tick))
 # # plt.plot(np.arange(0, len(np.unique(x_tick)), 1), )
 # # plt.xticks(np.arange(0, len(np.unique(x_tick)), 1), np.unique(x_tick))
+# plt.plot(X_, Y_)
 plt.plot(x, y, c="black")
-# plt.plot(x, y)
-# plt.yscale('log', base=2)
-# plt.yscale('log')
 plt.xscale('log', base=2)
+plt.yscale('log')
 # plt.xticks(np.unique(x_tick), np.unique(x_tick), rotation=45)
 plt.xlabel("Количество точек")
-plt.ylabel("Время (cек)")
+plt.ylabel("Относительная погрешность (E)")
 plt.grid()
-plt.savefig(f'{path}/res_kol_time.png', dpi=1000)
+plt.savefig(f'{path}/res_error.png', dpi=1000)
 plt.show()

@@ -21,9 +21,11 @@ for filename in os.listdir(path):
     if re.match("table_nera*", filename):
         filename_s = filename.split("_")
         # print(filename_s[1][2:])
-        if not(int(filename_s[2][2:]) == 15 and int(filename_s[3][2:]) == 23):
+        if not(int(filename_s[2][2:]) == 1 and int(filename_s[3][2:]) == 2):
             continue
         k = float(filename_s[5].split(".csv")[0][1:])
+        if k >= 0.055253796026246194:
+            continue
         with open(os.path.join(path, filename), 'r') as f:
             print(filename)
             reader = csv.reader(f, delimiter=',', quotechar=',', quoting=csv.QUOTE_MINIMAL)
@@ -87,7 +89,7 @@ plt.plot(x, y, c="black")
 plt.grid(True)
 # plt.scatter(x, y)
 # plt.xticks(np.unique(x_tick), np.unique(x_tick), rotation=45)
-plt.xlabel("Степень затенения")
+plt.xlabel("Степень рассеяния")
 plt.ylabel("Неоднородность по поверхности образца")
-plt.savefig(f'{path}/res15_23.png', dpi=1000)
+plt.savefig(f'{path}/res1_2.png', dpi=1000)
 plt.show()

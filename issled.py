@@ -288,14 +288,18 @@ def issled_integr(func, a1, b1, a2, b2, nx, ny, real_val):
 
 def issled_integr_diff_nx_ny(func, a1, b1, a2, b2, real_val):
     points = 2
-    while points <= 2 ** 8:
+    while points * points <= 1048576:
         res = issled_integr(func, a1, b1, a2, b2, points, points, real_val)
         res.append(points * points)
-        points = points * 2
+        points = points + 100
         print(res)
 
+    res = issled_integr(func, a1, b1, a2, b2, 1024, 1024, real_val)
+    res.append(points * points)
+    print(res)
+
 if __name__ == "__main__":
-    # res = issled_integr_diff_nx_ny(int_func3, 0, math.pi / 2, 0, math.pi / 2, math.pi / 4)
+    res = issled_integr_diff_nx_ny(int_func3, 0, math.pi / 2, 0, math.pi / 2, math.pi / 4)
     # tart = time.time()
     # res,_ = midpoint_double_viz_multithread(func=int_func4, a1=0, b1=math.pi * 2, a2=0, b2=math.pi / 2, ny=100, nx=100)
     # end = time.time()
@@ -307,7 +311,20 @@ if __name__ == "__main__":
 
     # issled_k()
     # issled_step_po_rasstoyaniy()
-    issled_step_po_rad()
+    # issled_step_po_rad()
+    # drum_with_podlozkda = Drum_with_podlozkda(rad=10, rpm=1, holders_rad=1, holders_rpm=2)
+    # mishen = Mishen(300, -25.5 / 2, 25.5 / 2, -11.5 / 2, 11.5 / 2)
+    # issled_neravnomernosti(mishen=mishen, drum_with_podlozkda=drum_with_podlozkda)
+
+    # drum_with_podlozkda = Drum_with_podlozkda(rad=10, rpm=15, holders_rad=1, holders_rpm=23)
+    # mishen = Mishen(300, -400 / 2, 400 / 2, -11.5 / 2, 11.5 / 2)
+    # issled_neravnomernosti(mishen=mishen, drum_with_podlozkda=drum_with_podlozkda)
+
+    # drum_with_podlozkda = Drum_with_podlozkda(rad=10, rpm=15, holders_rad=1, holders_rpm=23)
+    # mishen = Mishen(300, -20 / 2, 20 / 2, -11.5 / 2, 11.5 / 2)
+    # issled_neravnomernosti(mishen=mishen, drum_with_podlozkda=drum_with_podlozkda)
+
+
     # # issled_neravnomernosti(omega_b=15, omega_o=23)
     # issled_time_method_cond(cond_enabled=True)
     # issled_time_method_cond(cond_enabled=False)

@@ -425,12 +425,9 @@ def midpoint_calc_for_multithread(
     curr=0,
     hx=0,
     hy=0,
+    rad_sh=0,
+    height_sh=0
 ):
-
-    rad_middle = 2
-    len_middle = 5
-
-
 
     I = 0
     coord_list = []
@@ -460,16 +457,26 @@ def midpoint_calc_for_multithread(
                 z_1 = z_0 + s_3_nepodv * t
                 x_1 = l
                 logging.debug(f'Координаты точки пересечения: {x_1:.3f}, {y_1:.3f}, {z_1:.3f}')
-                if not (
-                    (z_lower_border_target <= z_1 <= z_higher_border_target)
-                    and (y_left_border_target <= y_1 <= y_right_border_target)
-                    and (math.sqrt(y_1**2 + (z_1 + len_middle)**2) > rad_middle)
-                    and (math.sqrt(y_1**2 + (z_1 - len_middle)**2) > rad_middle)
-                    and (not(-rad_middle <= y_1 <= rad_middle) or not(-len_middle <= z_1 <= len_middle))
-                ):
-                    logging.debug(f"{Fore.RED}Луч не пересекает поверхность{Style.RESET_ALL}")
-                    coord_list.append([x_1, y_1, z_1, 0])
-                    continue
+                if height_sh != 0:
+                    if not (
+                        (z_lower_border_target <= z_1 <= z_higher_border_target)
+                        and (y_left_border_target <= y_1 <= y_right_border_target)
+                        and (math.sqrt(y_1**2 + (z_1 + height_sh)**2) > rad_sh)
+                        and (math.sqrt(y_1**2 + (z_1 - height_sh)**2) > rad_sh)
+                        and (not(-rad_sh <= y_1 <= rad_sh) or not(-height_sh <= z_1 <= height_sh))
+                    ):
+                        logging.debug(f"{Fore.RED}Луч не пересекает поверхность{Style.RESET_ALL}")
+                        coord_list.append([x_1, y_1, z_1, 0])
+                        continue
+                else:
+                    if not (
+                        (z_lower_border_target <= z_1 <= z_higher_border_target)
+                        and (y_left_border_target <= y_1 <= y_right_border_target)
+                    ):
+                        logging.debug(f"{Fore.RED}Луч не пересекает поверхность{Style.RESET_ALL}")
+                        coord_list.append([x_1, y_1, z_1, 0])
+                        continue
+
                 logging.debug(f"{Fore.GREEN}Луч пересекает поверхность{Style.RESET_ALL}")
                 coord_list.append([x_1, y_1, z_1, 1])
 
@@ -500,6 +507,8 @@ def midpoint_double_viz_multithread(
     y_0=0,
     z_0=0,
     l=10,
+    height_sh=0,
+    rad_sh=0
 ):
 
     hx = (b1 - a1) / nx
@@ -547,6 +556,8 @@ def midpoint_double_viz_multithread(
                     curr=curr,
                     hx=hx,
                     hy=hy,
+                    height_sh=height_sh,
+                    rad_sh=rad_sh
                 )
             )
             logging.debug("started thread")

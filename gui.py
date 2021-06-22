@@ -8,6 +8,8 @@ from threading import Event
 from model import Drum_with_podlozkda, Mishen
 from tkinter import messagebox
 from decimal import Decimal
+import logging
+import sys
 
 global exit_flag
 exit_flag = Event()
@@ -54,12 +56,15 @@ def start(
     frames,
     d_field,
     ct_field,
+    enabled_sh,
+    rad_sh,
+    height_sh
 ):
 
-    if not (0 < rad_b < 99):
+    if not (0 <= rad_b <= 99):
         messagebox.showerror("Ошибка", "Введено недопустимое значение радиуса барабана. Допустимые значения:0-99")
         return
-    elif not(0 < rad_o < 99):
+    elif not(0 <= rad_o <= 99):
         messagebox.showerror("Ошибка", "Введено недопустимое значение радиуса образца. Допустимые значения:0-99")
         return
     elif not(rad_o + rad_b < m_distance):
@@ -74,7 +79,7 @@ def start(
     elif not(0 < m_width <= 100):
         messagebox.showerror("Ошибка", "Введено недопустимое значение ширины. Допустимые значения: (0,100]")
         return
-    elif not(0 < m_distance <= 100):
+    elif not(0 < m_distance <= 400):
         messagebox.showerror("Ошибка", "Введено недопустимое значение расстояния от центра барабана до мишени. Допустимые значения:(0,100]")
         return
     elif not(-360 <= psi <= 360):
@@ -108,6 +113,10 @@ def start(
         messagebox.showerror("Ошибка", "Введено недопустимое значение частоты вращения барабана. Допустимые значения:0-100")
         return
 
+    if not (enabled_sh):
+        rad_sh = 0
+        height_sh = 0
+
     exit_flag.clear()
     print(time_step)
     disable_buttons_for_frames(frames)
@@ -131,8 +140,17 @@ def start(
         seconds=time,
         d_field=d_field,
         ct_field=ct_field,
+        height_sh=height_sh / 2,
+        rad_sh=rad_sh
     )
 
+def disable_shtuka(var, param1, param2):
+    if var.get() is False:
+        param1.configure(state='disable')
+        param2.configure(state='disable')
+    else:
+        param1.configure(state='normal')
+        param2.configure(state='normal')
 
 def stop(frames):
     enable_buttons_for_frames(frames)
@@ -164,8 +182,8 @@ if __name__ == "__main__":
 
     # Create a tkinter button at the bottom of the window and link it with the updateGraph function
     root.title("Моделирование нанесения наноструктур в магнетроннах барабанного вида")
-    root.geometry('{}x{}'.format(800, 750))
-    root.minsize(width=800, height=790)
+    root.geometry('{}x{}'.format(800, 890))
+    root.minsize(width=800, height=890)
     # top_frame = tk.Frame(root, bg='cyan', width=450, height=50, pady=3)
     # center = tk.Frame(root, bg='gray2', width=50, height=40, padx=3, pady=3)
     # btm_frame = tk.Frame(root, bg='white', width=450, height=45, pady=3)
@@ -292,6 +310,32 @@ if __name__ == "__main__":
     entryMishHeight = tk.Entry(labelframeMish, text=entryTextMishHeight)
     entryMishHeight.pack(side="top", anchor="nw", expand=True)
 
+
+    # Штука
+    labelTextMishRadVnutr = tk.StringVar()
+    labelTextMishRadVnutr.set("Радиус штуки")
+    labelMishRadVnutr = tk.Label(labelframeMish, textvariable=labelTextMishRadVnutr, height=1)
+    entryTextMishRadVnutr = tk.DoubleVar()
+    entryTextMishRadVnutr.set(0)
+    entryMishRadVnutr = tk.Entry(labelframeMish, text=entryTextMishRadVnutr)
+    entryMishRadVnutr.configure(state="disabled")
+    labelTextMishHeightVnutr = tk.StringVar()
+    labelTextMishHeightVnutr.set("Высота штуки")
+    labelMishHeightVnutr = tk.Label(labelframeMish, textvariable=labelTextMishHeightVnutr, height=1)
+    entryTextMishHeightVnutr = tk.DoubleVar()
+    entryTextMishHeightVnutr.set(0)
+    entryMishHeightVnutr = tk.Entry(labelframeMish, text=entryTextMishHeightVnutr)
+    entryMishHeightVnutr.configure(state="disabled")
+
+    labelTextMishEnableVnutr = tk.BooleanVar()
+    labelTextMishEnableVnutr.set(False)
+    labelMishEnableVnutr = tk.Checkbutton(labelframeMish, text="Штука", variable=labelTextMishEnableVnutr, height=1, command=lambda: disable_shtuka(labelTextMishEnableVnutr, entryMishRadVnutr, entryMishHeightVnutr))
+    labelMishEnableVnutr.pack(side="top", anchor="nw", expand=True)
+    labelMishRadVnutr.pack(side="top", anchor="nw", expand=True)
+    entryMishRadVnutr.pack(side="top", anchor="nw", expand=True)
+    labelMishHeightVnutr.pack(side="top", anchor="nw", expand=True)
+    entryMishHeightVnutr.pack(side="top", anchor="nw", expand=True)
+
     # inside labelframeSred
     labelTextSredK = tk.StringVar()
     labelTextSredK.set("Коэффициент затенения")
@@ -389,8 +433,11 @@ if __name__ == "__main__":
             framesToDisable,
             entryTextD,
             entryTextTTime,
+            labelTextMishEnableVnutr.get(),
+            entryTextMishRadVnutr.get(),
+            entryTextMishHeightVnutr.get(),
         ),
     ).grid(row=0, column=0)
     tk.Button(frameSS, text="Стоп", command=lambda: stop(framesToDisable)).grid(row=0, column=1)
-
+    logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
     root.mainloop()

@@ -123,6 +123,8 @@ def one_dot_visualize_midpoint(
     nx=100,
     ny=100,
     time_step=0.15,
+    rad_sh=0,
+    height_sh=0,
     d_field=None,
     ct_field=None,
 ):
@@ -174,9 +176,11 @@ def one_dot_visualize_midpoint(
                     z_higher_border_target=mishen.z_higher_border_target,
                     l=mishen.x,
                     ksi=point.current_angle,
+                    rad_sh=rad_sh,
+                    height_sh=height_sh,
                 )
                 end = time.time()
-                # print(end - start)
+                print(end - start)
 
                 thickness += v_p * time_step
                 # green_counter = 0
@@ -187,26 +191,18 @@ def one_dot_visualize_midpoint(
                 red_intersections_ys_top = []
                 red_intersections_zs_top = []
                 for coord_intersection in coord_intersections:
-                    # x_val.append(coord_intersection[0])
-                    # y_val.append(coord_intersection[1])
-                    # y_val2.append(coord_intersection[1])
-                    # z_val2.append(coord_intersection[2])
                     if coord_intersection[3] == 1:
                         green_intersections_xs_top.append(coord_intersection[0])
                         green_intersections_ys_top.append(coord_intersection[1])
                         green_intersections_zs_top.append(coord_intersection[2])
-                        # color_val2.append("green")
                     else:
                         if (
                             y_min_graph <= coord_intersection[1] <= y_max_graph
-                            and -mishen_max_graph - 5 <= coord_intersection[2] <= mishen_max_graph + 5
+                            and -mishen_max_graph <= coord_intersection[2] <= mishen_max_graph
                         ):
                             red_intersections_xs_top.append(coord_intersection[0])
                             red_intersections_ys_top.append(coord_intersection[1])
                             red_intersections_zs_top.append(coord_intersection[2])
-                        # color_val.append("red")
-                        # color_val2.append("red")
-                # print(green_counter)
                 x_val.extend(red_intersections_xs_top)
                 y_val.extend(red_intersections_ys_top)
                 color_val += ["red"] * len(red_intersections_xs_top)
