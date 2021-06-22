@@ -278,7 +278,7 @@ def int_func4(x, y):
 
 def issled_integr(func, a1, b1, a2, b2, nx, ny, real_val):
     start = time.time()
-    res = midpoint_double_multithread(func=int_func4, a1=a1, b1=b1, a2=a2, b2=b2, ny=ny, nx=nx)
+    res = midpoint_double_multithread(func=int_func4, a1=a1, b1=b1, a2=a2, b2=b2, ny=ny, nx=nx, thread_count=1)
     end = time.time()
 
     acc = (res - real_val) / real_val
