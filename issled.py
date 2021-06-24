@@ -289,7 +289,7 @@ def issled_integr(func, a1, b1, a2, b2, nx, ny, real_val):
 def issled_integr_diff_nx_ny(func, a1, b1, a2, b2, real_val):
     points = 2
     usred = 0
-    while points * points <= 1048576:
+    while points * points <= 4194304:
         usred = 0
         for k in range(0, 10):
             res = issled_integr(func, a1, b1, a2, b2, points, points, real_val)
@@ -300,9 +300,9 @@ def issled_integr_diff_nx_ny(func, a1, b1, a2, b2, real_val):
         points = points + 100
         print(res)
 
-    res = issled_integr(func, a1, b1, a2, b2, 1024, 1024, real_val)
-    res.append(1024 * 1024)
-    print(res)
+    # res = issled_integr(func, a1, b1, a2, b2, 1024, 1024, real_val)
+    # res.append(1024 * 1024)
+    # print(res)
 
 if __name__ == "__main__":
     res = issled_integr_diff_nx_ny(int_func3, 0, math.pi / 2, 0, math.pi / 2, math.pi / 4)
