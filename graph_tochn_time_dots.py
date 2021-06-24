@@ -54,7 +54,7 @@ X_Y_Spline = make_interp_spline(x, y)
 
 # Returns evenly spaced numbers
 # over a specified interval.
-X_ = np.linspace(min(x), max(x), 80)
+X_ = np.linspace(min(x), max(x), 100)
 Y_ = X_Y_Spline(X_)
 
 # # plt.plot(np.arange(0, len(xnew), 1), f(xnew))

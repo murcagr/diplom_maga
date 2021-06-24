@@ -61,11 +61,11 @@ def start(
     height_sh
 ):
 
-    if not (0 <= rad_b <= 99):
-        messagebox.showerror("Ошибка", "Введено недопустимое значение радиуса барабана. Допустимые значения:0-99")
+    if not (0 <= rad_b <= 100):
+        messagebox.showerror("Ошибка", "Введено недопустимое значение радиуса барабана. Допустимые значения:(0,100]")
         return
-    elif not(0 <= rad_o <= 99):
-        messagebox.showerror("Ошибка", "Введено недопустимое значение радиуса образца. Допустимые значения:0-99")
+    elif not(0 <= rad_o <= 100):
+        messagebox.showerror("Ошибка", "Введено недопустимое значение радиуса образца. Допустимые значения:(0,100]")
         return
     elif not(rad_o + rad_b < m_distance):
         messagebox.showerror("Ошибка", "Введено недопустимое значение радиуса барабана. Радиус образца и радиус барабана в сумме не должны превышать расстояние до мишени")
@@ -116,6 +116,9 @@ def start(
     if not (enabled_sh):
         rad_sh = 0
         height_sh = 0
+    else:
+        rad_sh = m_width / 4
+        height_sh = m_height / 4
 
     exit_flag.clear()
     print(time_step)
@@ -329,16 +332,16 @@ if __name__ == "__main__":
 
     labelTextMishEnableVnutr = tk.BooleanVar()
     labelTextMishEnableVnutr.set(False)
-    labelMishEnableVnutr = tk.Checkbutton(labelframeMish, text="Штука", variable=labelTextMishEnableVnutr, height=1, command=lambda: disable_shtuka(labelTextMishEnableVnutr, entryMishRadVnutr, entryMishHeightVnutr))
+    labelMishEnableVnutr = tk.Checkbutton(labelframeMish, text="Реалистичная", variable=labelTextMishEnableVnutr, height=1, command=lambda: disable_shtuka(labelTextMishEnableVnutr, entryMishRadVnutr, entryMishHeightVnutr))
     labelMishEnableVnutr.pack(side="top", anchor="nw", expand=True)
-    labelMishRadVnutr.pack(side="top", anchor="nw", expand=True)
-    entryMishRadVnutr.pack(side="top", anchor="nw", expand=True)
-    labelMishHeightVnutr.pack(side="top", anchor="nw", expand=True)
-    entryMishHeightVnutr.pack(side="top", anchor="nw", expand=True)
+    # labelMishRadVnutr.pack(side="top", anchor="nw", expand=True)
+    # entryMishRadVnutr.pack(side="top", anchor="nw", expand=True)
+    # labelMishHeightVnutr.pack(side="top", anchor="nw", expand=True)
+    # entryMishHeightVnutr.pack(side="top", anchor="nw", expand=True)
 
     # inside labelframeSred
     labelTextSredK = tk.StringVar()
-    labelTextSredK.set("Коэффициент затенения")
+    labelTextSredK.set("Коэффициент рассеяния")
     labelSredK = tk.Label(labelframeSred, textvariable=labelTextSredK, height=1)
     labelSredK.pack(side="top", anchor="nw", expand=True)
 
@@ -384,7 +387,7 @@ if __name__ == "__main__":
     labelTime.pack(side="top", anchor="nw", expand=True)
 
     entryTextTime = tk.IntVar()
-    entryTextTime.set(1)
+    entryTextTime.set(60)
     entryTime = tk.Entry(labelframeMM, text=entryTextTime)
     entryTime.pack(side="top", anchor="nw", expand=True)
 
@@ -439,5 +442,5 @@ if __name__ == "__main__":
         ),
     ).grid(row=0, column=0)
     tk.Button(frameSS, text="Стоп", command=lambda: stop(framesToDisable)).grid(row=0, column=1)
-    logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
+    # logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
     root.mainloop()
